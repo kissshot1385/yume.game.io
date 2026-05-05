@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>8號時間迷宮｜顯示頁</title>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase.js"></script>
+
+<style>
+html,body{
+  margin:0;width:100%;height:100%;overflow:hidden;
+  background:#050505;color:#fff;
+  font-family:"Noto Sans TC",sans-serif;
+}
+.screen{
+  height:100vh;padding:22px;box-sizing:border-box;
+  display:grid;grid-template-columns:1fr 1.05fr;gap:22px;
+}
+.left{display:grid;grid-template-rows:.72fr 1.28fr;gap:22px;}
+.panel{
+  border:2px solid #b87845;border-radius:36px;background:#080808;
+  padding:26px;box-sizing:border-box;overflow:hidden;
+}
+h1{margin:0 0 16px;font-size:42px;}
+h2{margin:0 0 12px;font-size:30px;}
+.stat{font-size:24px;margin:8px 0;color:#f4e6c8;}
+.players{display:flex;gap:18px;}
+.playerCard{
+  flex:1;border:1px solid #8b6b3e;border-radius:20px;
+  padding:16px;background:#15110d;
+}
+.hpWrap{position:relative;margin:12px 0;}
+.bar{
+  width:100%;height:34px;background:#7b1f1f;
+  border:2px solid #d0a45a;border-radius:14px;overflow:hidden;
+}
+.fill{
+  height:100%;background:#29a745;transition:.3s;
+  box-shadow:inset 0 0 10px rgba(0,0,0,.6);
+}
+.row{display:flex;gap:10px;flex-wrap:wrap;}
+.box{
+  border:1px solid #8b6b3e;padding:8px 12px;border-radius:12px;
+  font-size:20px;min-width:96px;text-align:center;
+}
+.empty{opacity:.35;}
+.reward{
+  display:none;color:#ffd36a;border:1px solid #d0a45a;border-radius:14px;
+  padding:12px;margin-bottom:14px;background:#2a2118;font-size:26px;
+  text-align:center;animation:glow 1s infinite alternate;
+}
+@keyframes glow{from{box-shadow:0 0 10px #ffd36a;}to{box-shadow:0 0 25px #ffd36a;}}
+.low-hp{animation:lowHpBlink 1s infinite;}
+@keyframes lowHpBlink{0%{filter:brightness(1);}50%{filter:brightness(1.8);}100%{filter:brightness(1);}}
+.flash-damage .bar{animation:damageFlash .45s ease-in-out;}
+@keyframes damageFlash{0%{background:#7b1f1f;}30%{background:#ff2b2b;box-shadow:0 0 25px #ff3333;}100%{background:#7b1f1f;}}
+.flash-heal .bar{animation:healFlash .6s ease-in-out;}
+@keyframes healFlash{0%{background:#7b1f1f;}30%{background:#00ff88;box-shadow:0 0 30px #00ff88;}100%{background:#7b1f1f;}}
+.float-number{
+  position:absolute;left:50%;top:-12px;transform:translateX(-50%);
+  font-size:32px;font-weight:bold;pointer-events:none;
+  animation:floatUp 1s ease-out forwards;z-index:20;
+  text-shadow:0 0 12px currentColor;
+}
+.float-damage{color:#ff4b4b}.float-heal{color:#00ff88}
+@keyframes floatUp{
+  0%{opacity:0;transform:translate(-50%,10px) scale(.8);}
+  20%{opacity:1;transform:translate(-50%,-6px) scale(1.15);}
+  100%{opacity:0;transform:translate(-50%,-56px) scale(1);}
+}
+.mapPanel{display:flex;flex-direction:column;}
+.mapSvg{
+  width:100%;height:100%;background:#020202;
+  border:1px solid #8b6b3e;border-radius:28px;
+}
+.edge{stroke:#ff7a1a;stroke-width:.55;}
+.node{fill:#070707;stroke:#f2f2f2;stroke-width:.8;}
+.bossNode{fill:#080808;stroke:#9b0016;stroke-width:1.1;}
+.startNode{fill:#050505;stroke:#16a34a;stroke-width:1.1;}
+.nodeText{
+  font-size:4px;fill:#fff;text-anchor:middle;dominant-baseline:middle;font-weight:bold;
+}
+.roomIcon{
+  font-size:5px;text-anchor:middle;dominant-baseline:middle;
+}
+.currentStar{
+  font-size:7px;fill:#ffd36a;text-anchor:middle;dominant-baseline:middle;
+  text-shadow:0 0 8px #ffd36a;
+}
+.roomText{font-size:34px;line-height:1.55;white-space:pre-line;color:#fff;}
+</style>
+</head>
+
+<body>
+<div class="screen">
+  <div class="left">
+    <div class="panel">
+      <h1>冒險者資料</h1>
+      <div class="players" id="players"></div>
+    </div>
+
+    <div class="panel">
+      <div id="dropReward" class="reward"></div>
+      <h1 id="infoTitle">敵人資料</h1>
+      <div id="infoContent"></div>
+    </div>
+  </div>
+
+  <div class="panel mapPanel">
+    <h1>地圖</h1>
+    <svg class="mapSvg" id="mapSvg" viewBox="0 0 100 100"></svg>
+  </div>
+</div>
+
+<script>
+var firebaseConfig = {
+  // 貼你的 firebaseConfig
+  apiKey: "AIzaSyA9463bcgt_R9KWU5dXx0xrKQtCEBdLwkE",
+  authDomain: "yume-game.firebaseapp.com",
+  databaseURL: "https://yume-game-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "yume-game",
+  storageBucket: "yume-game.firebasestorage.app",
+  messagingSenderId: "902572378872",
+  appId: "1:902572378872:web:293ba940026c628b94c90d",
+  measurementId: "G-BD8GMZR2B5"
+};
+
+firebase.initializeApp(firebaseConfig);
+var db=firebase.database();
+
+let lastEnemyHp=null;
+let lastPlayerHp={player1:null,player2:null};
+
+const nodes={
+  start:[50,94,"開始"], midBoss:[50,52,"中級BOSS"], finalBoss:[50,7,"最終BOSS"],
+
+  A1:[20,82,"A1"], A2:[50,82,"A2"], A3:[80,82,"A3"],
+  A4:[20,72,"A4"], A5:[50,72,"A5"], A6:[80,72,"A6"],
+  A7:[20,62,"A7"], A8:[50,62,"A8"], A9:[80,62,"A9"],
+
+  B1:[20,42,"B1"], B2:[50,42,"B2"], B3:[80,42,"B3"],
+  B4:[10,32,"B4"], B5:[26,32,"B5"], B6:[42,32,"B6"],
+  B7:[58,32,"B7"], B8:[74,32,"B8"], B9:[90,32,"B9"],
+  B10:[25,22,"B10"], B11:[50,22,"B11"], B12:[75,22,"B12"]
+};
+
+const edges=[
+ ["start","A1"],["start","A2"],["start","A3"],
+ ["A1","A4"],["A1","A5"],
+ ["A2","A4"],["A2","A5"],["A2","A6"],
+ ["A3","A5"],["A3","A6"],
+ ["A4","A7"],["A4","A8"],
+ ["A5","A7"],["A5","A8"],["A5","A9"],
+ ["A6","A8"],["A6","A9"],
+ ["A7","midBoss"],["A8","midBoss"],["A9","midBoss"],
+
+ ["midBoss","B1"],["midBoss","B2"],["midBoss","B3"],
+ ["B1","B4"],["B1","B5"],
+ ["B2","B6"],["B2","B7"],
+ ["B3","B8"],["B3","B9"],
+ ["B4","B10"],
+ ["B5","B10"],["B5","B11"],
+ ["B6","B10"],["B6","B11"],
+ ["B7","B11"],["B7","B12"],
+ ["B8","B11"],["B8","B12"],
+ ["B9","B12"],
+ ["B10","finalBoss"],["B11","finalBoss"],["B12","finalBoss"]
+];
+
+function iconFor(type){
+  if(type==="monster") return "☠";
+  if(type==="question") return "?";
+  if(type==="luck") return "✦";
+  return "";
+}
+
+function hpPercent(hp,maxHp){
+  return Math.max(0,Math.min(100,Number(hp)/Number(maxHp)*100));
+}
+
+function flash(id,type){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.remove(type);
+  void el.offsetWidth;
+  el.classList.add(type);
+}
+
+function showFloatNumber(id,amount){
+  const el=document.getElementById(id);
+  if(!el||amount===0)return;
+  const n=document.createElement("div");
+  n.className="float-number "+(amount>0?"float-heal":"float-damage");
+  n.innerText=amount>0?"+"+amount:String(amount);
+  el.appendChild(n);
+  setTimeout(()=>n.remove(),1000);
+}
+
+function renderPlayer(p,label,key){
+  if(!p||!p.job)return "";
+  const percent=hpPercent(p.hp||0,p.maxHp||1);
+  const low=percent>0&&percent<30?"low-hp":"";
+  const activeNames={weaponBoost:"強化武器",shield:"時間護盾"};
+  const activeHtml=Object.keys(activeNames).map(k=>
+    `<div class="box ${(p.active&&p.active[k])?"":"empty"}">${activeNames[k]}</div>`
+  ).join("");
+
+  return `<div class="playerCard">
+    <h2>${label}</h2>
+    <div class="stat">職業：${p.job}</div>
+    <div class="hpWrap" id="${key}BarBox">
+      <div class="bar ${low}"><div class="fill" style="width:${percent}%"></div></div>
+    </div>
+    <div class="stat">HP：${p.hp??0} / ${p.maxHp??0}</div>
+    <div class="row">
+      <div class="box">攻擊力：${p.atk??0}</div>
+      <div class="box">命中：${p.hit||"-"}</div>
+      ${p.job==="潛行者"?`<div class="box">9+ 傷害 +1</div>`:""}
+      ${p.job==="干涉者"?`<div class="box">干涉：${p.interfere??5}/5</div>`:""}
+      <div class="box">防禦力：${p.def??0}</div>
+    </div>
+    <h2 style="margin-top:16px;">狀態</h2>
+    <div class="row">${activeHtml}</div>
+  </div>`;
+}
+
+function renderEnemy(e){
+  const hp=Number(e.hp||0), max=Number(e.maxHp||0);
+  const percent=hpPercent(hp,max||1);
+  const low=percent>0&&percent<30?"low-hp":"";
+
+  return `<div class="stat">敵人：${e.name||"未出現"}</div>
+    <div class="hpWrap" id="enemyBarBox">
+      <div class="bar ${low}"><div class="fill" style="width:${percent}%"></div></div>
+    </div>
+    <div class="stat">HP：${hp} / ${max}</div>
+    <div class="row">
+      <div class="box">攻擊力：${e.atk??0}</div>
+      <div class="box">命中：${e.hit||"-"}</div>
+    </div>`;
+}
+
+function renderRoom(roomInfo){
+  return `<div class="roomText">${roomInfo?.content || "尚未發現房間內容。"}</div>`;
+}
+
+function drawMap(current, roomTypes){
+  const svg=document.getElementById("mapSvg");
+  let html="";
+
+  edges.forEach(([a,b])=>{
+    const A=nodes[a],B=nodes[b];
+    html+=`<line class="edge" x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}"/>`;
+  });
+
+  Object.keys(nodes).forEach(id=>{
+    const [x,y,text]=nodes[id];
+    const cls=id==="start"?"startNode":(id==="midBoss"||id==="finalBoss"?"bossNode":"node");
+    const rx=(id==="midBoss"||id==="finalBoss")?27:9;
+    const ry=(id==="midBoss"||id==="finalBoss")?5.5:4.5;
+
+    html+=`<ellipse class="${cls}" cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"/>`;
+
+    if(id.startsWith("A")||id.startsWith("B")){
+      html+=`<text class="nodeText" x="${x}" y="${y-1.4}">${text}</text>`;
+      html+=`<text class="roomIcon" x="${x}" y="${y+2.5}">${iconFor(roomTypes?.[id])}</text>`;
+    }else{
+      html+=`<text class="nodeText" x="${x}" y="${y}">${text}</text>`;
+    }
+  });
+
+  if(nodes[current]){
+    const [x,y]=nodes[current];
+    html+=`<text class="currentStar" x="${x}" y="${y-7}">★</text>`;
+  }
+
+  svg.innerHTML=html;
+}
+
+db.ref().on("value",snap=>{
+  const data=snap.val()||{};
+  const players=data.players||{};
+  const e=data.enemy||{};
+  const roomInfo=data.roomInfo||{mode:"enemy",content:""};
+  const map=data.map||{currentNode:"start",roomTypes:{}};
+
+  document.getElementById("players").innerHTML=
+    renderPlayer(players.player1,"玩家1","player1")+
+    renderPlayer(players.player2,"玩家2","player2");
+
+  document.getElementById("infoTitle").innerText=
+    roomInfo.mode==="room"?"房間內容":"敵人資料";
+
+  document.getElementById("infoContent").innerHTML=
+    roomInfo.mode==="room"?renderRoom(roomInfo):renderEnemy(e);
+
+  drawMap(map.currentNode||"start", map.roomTypes||{});
+
+  const enemyHp=Number(e.hp||0);
+
+  if(lastEnemyHp!==null&&enemyHp===0&&Number(lastEnemyHp)>0&&e.name&&e.name!=="未出現"){
+    const box=document.getElementById("dropReward");
+    box.innerText="掉落獎勵："+(e.drop||"獲得掉落獎勵");
+    box.style.display="block";
+  }
+
+  if((Number(lastEnemyHp)===0&&enemyHp>0)||!e.name||e.name==="未出現"){
+    document.getElementById("dropReward").style.display="none";
+  }
+
+  ["player1","player2"].forEach(k=>{
+    const cur=players[k];
+    if(cur&&cur.job){
+      const current=Number(cur.hp||0),prev=lastPlayerHp[k];
+      if(prev!==null){
+        const diff=current-Number(prev);
+        if(diff<0){flash(k+"BarBox","flash-damage");showFloatNumber(k+"BarBox",diff);}
+        if(diff>0){flash(k+"BarBox","flash-heal");showFloatNumber(k+"BarBox",diff);}
+      }
+      lastPlayerHp[k]=current;
+    }
+  });
+
+  if(lastEnemyHp!==null){
+    const diff=enemyHp-Number(lastEnemyHp);
+    if(diff<0){flash("enemyBarBox","flash-damage");showFloatNumber("enemyBarBox",diff);}
+    if(diff>0){flash("enemyBarBox","flash-heal");showFloatNumber("enemyBarBox",diff);}
+  }
+
+  lastEnemyHp=enemyHp;
+});
+</script>
+</body>
+</html>

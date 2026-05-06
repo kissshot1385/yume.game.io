@@ -31,6 +31,7 @@ button{
   background:#2a2118;
   color:#f4e6c8;
 }
+
 button:active{background:#6b4a22;}
 
 .danger{
@@ -38,7 +39,6 @@ button:active{background:#6b4a22;}
   color:#ffd0d0;
 }
 
-/* 🔥 橫向雙欄 */
 .row{
   display:flex;
   gap:20px;
@@ -57,13 +57,11 @@ button:active{background:#6b4a22;}
 
 <h1>⚙️ 控制頁</h1>
 
-<!-- ===== 遊戲控制 ===== -->
 <section>
 <h2>遊戲控制</h2>
 <button class="danger" onclick="resetGame()">重置遊戲</button>
 </section>
 
-<!-- ===== 玩家職業 ===== -->
 <section>
 <h2>玩家職業</h2>
 <button onclick="addPlayer('鍛時者',30,'6+')">鍛時者</button>
@@ -72,12 +70,10 @@ button:active{background:#6b4a22;}
 <button onclick="addPlayer('潛行者',20,'6+')">潛行者</button>
 </section>
 
-<!-- ===== 攻擊 / 防禦 ===== -->
 <section>
 <h2>玩家攻擊力 / 防禦力</h2>
 
 <div class="row">
-
 <div class="col">
 <h3>玩家1</h3>
 <button onclick="setPlayerAtk('player1',3)">攻擊=3</button>
@@ -95,16 +91,13 @@ button:active{background:#6b4a22;}
 <button onclick="setPlayerDef('player2',0)">防禦=0</button>
 <button onclick="addPlayerDef('player2',1)">+1</button>
 </div>
-
 </div>
 </section>
 
-<!-- ===== 干涉 ===== -->
 <section>
 <h2>干涉次數</h2>
 
 <div class="row">
-
 <div class="col">
 <h3>玩家1</h3>
 <button onclick="setInterfere('player1',0)">0</button>
@@ -124,16 +117,13 @@ button:active{background:#6b4a22;}
 <button onclick="setInterfere('player2',4)">4</button>
 <button onclick="setInterfere('player2',5)">5</button>
 </div>
-
 </div>
 </section>
 
-<!-- ===== 使用中道具 ===== -->
 <section>
 <h2>使用中道具</h2>
 
 <div class="row">
-
 <div class="col">
 <h3>玩家1</h3>
 <button onclick="toggleActive('player1','weaponBoost')">強化武器</button>
@@ -145,11 +135,9 @@ button:active{background:#6b4a22;}
 <button onclick="toggleActive('player2','weaponBoost')">強化武器</button>
 <button onclick="toggleActive('player2','shield')">時間護盾</button>
 </div>
-
 </div>
 </section>
 
-<!-- ===== 移動 ===== -->
 <section>
 <h2>迷宮移動</h2>
 <button onclick="moveRoom('L')">← 左</button>
@@ -157,12 +145,10 @@ button:active{background:#6b4a22;}
 <button onclick="moveRoom('R')">→ 右</button>
 </section>
 
-<!-- ===== 血量 ===== -->
 <section>
 <h2>血量控制</h2>
 
 <div class="row">
-
 <div class="col">
 <h3>玩家1</h3>
 <button onclick="changeHp('players/player1',-1)">-1</button>
@@ -178,7 +164,6 @@ button:active{background:#6b4a22;}
 <button onclick="changeHp('players/player2',6)">+6</button>
 <button onclick="changeHp('players/player2',12)">+12</button>
 </div>
-
 </div>
 
 <br>
@@ -186,7 +171,6 @@ button:active{background:#6b4a22;}
 <button onclick="changeHp('enemy',-1)">敵人 -1</button>
 <button onclick="changeHp('enemy',-3)">敵人 -3</button>
 <button onclick="changeHp('enemy',-6)">敵人 -6</button>
-
 </section>
 
 <script>
@@ -208,25 +192,32 @@ var db = firebase.database();
 
 const moveMap = {
   start:{L:"A1",M:"A2",R:"A3"},
+
   A1:{L:"A4",R:"A5"},
   A2:{L:"A4",M:"A5",R:"A6"},
   A3:{L:"A5",R:"A6"},
+
   A4:{L:"A7",R:"A8"},
   A5:{L:"A7",M:"A8",R:"A9"},
   A6:{L:"A8",R:"A9"},
+
   A7:{M:"midBoss"},
   A8:{M:"midBoss"},
   A9:{M:"midBoss"},
+
   midBoss:{L:"B1",M:"B2",R:"B3"},
+
   B1:{L:"B4",R:"B5"},
   B2:{L:"B6",R:"B7"},
   B3:{L:"B8",R:"B9"},
+
   B4:{M:"B10"},
   B5:{L:"B10",R:"B11"},
   B6:{L:"B10",R:"B11"},
   B7:{L:"B11",R:"B12"},
   B8:{L:"B11",R:"B12"},
   B9:{M:"B12"},
+
   B10:{M:"finalBoss"},
   B11:{M:"finalBoss"},
   B12:{M:"finalBoss"}
@@ -234,19 +225,27 @@ const moveMap = {
 
 function makePlayer(job,maxHp,hit){
   return {
-    job, hp:maxHp, maxHp,
-    atk:3, hit, def:0,
-    interfere: job==="干涉者"?5:0,
-    active:{weaponBoost:false,shield:false}
+    job:job,
+    hp:maxHp,
+    maxHp:maxHp,
+    atk:3,
+    hit:hit,
+    def:0,
+    interfere: job === "干涉者" ? 5 : 0,
+    active:{
+      weaponBoost:false,
+      shield:false
+    }
   };
 }
 
 function addPlayer(job,maxHp,hit){
   db.ref("players").once("value").then(snap=>{
-    const p=snap.val()||{};
-    if(!p.player1||!p.player1.job){
+    const players=snap.val()||{};
+
+    if(!players.player1||!players.player1.job){
       db.ref("players/player1").set(makePlayer(job,maxHp,hit));
-    }else if(!p.player2||!p.player2.job){
+    }else if(!players.player2||!players.player2.job){
       db.ref("players/player2").set(makePlayer(job,maxHp,hit));
     }else{
       alert("已有兩位冒險者。請先重置遊戲。");
@@ -254,39 +253,60 @@ function addPlayer(job,maxHp,hit){
   });
 }
 
-function setPlayerAtk(p,a){db.ref("players/"+p+"/atk").set(a);}
-function addPlayerAtk(p,a){
-  db.ref("players/"+p+"/atk").once("value").then(s=>{
-    db.ref("players/"+p+"/atk").set((Number(s.val())||0)+a);
+function setPlayerAtk(player,atk){
+  db.ref("players/"+player+"/atk").set(atk);
+}
+
+function addPlayerAtk(player,amount){
+  db.ref("players/"+player+"/atk").once("value").then(snap=>{
+    const atk=Number(snap.val())||0;
+    db.ref("players/"+player+"/atk").set(atk+amount);
   });
 }
 
-function setPlayerDef(p,d){db.ref("players/"+p+"/def").set(d);}
-function addPlayerDef(p,a){
-  db.ref("players/"+p+"/def").once("value").then(s=>{
-    db.ref("players/"+p+"/def").set((Number(s.val())||0)+a);
+function setPlayerDef(player,def){
+  db.ref("players/"+player+"/def").set(def);
+}
+
+function addPlayerDef(player,amount){
+  db.ref("players/"+player+"/def").once("value").then(snap=>{
+    const def=Number(snap.val())||0;
+    db.ref("players/"+player+"/def").set(def+amount);
   });
 }
 
-function setInterfere(p,v){db.ref("players/"+p+"/interfere").set(v);}
+function setInterfere(player,value){
+  db.ref("players/"+player+"/interfere").set(value);
+}
 
-function toggleActive(p,i){
-  db.ref("players/"+p+"/active/"+i).once("value").then(s=>{
-    db.ref("players/"+p+"/active/"+i).set(!s.val());
+function toggleActive(player,item){
+  db.ref("players/"+player+"/active/"+item).once("value").then(snap=>{
+    db.ref("players/"+player+"/active/"+item).set(!snap.val());
   });
 }
 
-function changeHp(path,a){
-  db.ref(path).once("value").then(s=>{
-    const d=s.val(); 
-    if(!d)return;
-    const hp=Math.max(0,Math.min(Number(d.maxHp),Number(d.hp)+a));
-    db.ref(path+"/hp").set(hp);
+function changeHp(path,amount){
+  db.ref(path).once("value").then(snap=>{
+    const data=snap.val();
+    if(!data)return;
+
+    const hp=Number(data.hp)||0;
+    const maxHp=Number(data.maxHp)||0;
+    const nextHp=Math.max(0,Math.min(maxHp,hp+amount));
+
+    db.ref(path+"/hp").set(nextHp);
   });
 }
 
 function setEnemy(name,hp,atk,hit,drop){
-  db.ref("enemy").set({name,hp,maxHp:hp,atk,hit,drop});
+  db.ref("enemy").set({
+    name:name,
+    hp:hp,
+    maxHp:hp,
+    atk:atk,
+    hit:hit,
+    drop:drop
+  });
 }
 
 function shuffle(arr){
@@ -294,20 +314,27 @@ function shuffle(arr){
 }
 
 function generateRoomTypes(){
-  const roomTypes = {};
-  const aRooms = shuffle([
+  const roomTypes={};
+
+  const aRooms=shuffle([
     "monster","monster","monster","monster","monster",
     "question","question","question",
     "luck"
   ]);
-  for(let i=1;i<=9;i++) roomTypes["A"+i] = aRooms[i-1];
 
-  const bRooms = shuffle([
+  for(let i=1;i<=9;i++){
+    roomTypes["A"+i]=aRooms[i-1];
+  }
+
+  const bRooms=shuffle([
     "monster","monster","monster","monster","monster","monster","monster",
     "question","question","question","question",
     "luck"
   ]);
-  for(let i=1;i<=12;i++) roomTypes["B"+i] = bRooms[i-1];
+
+  for(let i=1;i<=12;i++){
+    roomTypes["B"+i]=bRooms[i-1];
+  }
 
   return roomTypes;
 }
@@ -316,61 +343,73 @@ function randomPick(arr){
   return arr[Math.floor(Math.random()*arr.length)];
 }
 
+function clearEnemy(){
+  db.ref("enemy").set({
+    name:"未出現",
+    hp:0,
+    maxHp:0,
+    atk:0,
+    hit:"-",
+    drop:""
+  });
+}
+
 function triggerRoom(node){
-  if(node === "midBoss"){
-    setEnemy("中Boss",25,5,"7+","160金、回復藥 x1");
+  if(node==="midBoss"){
+    setEnemy("中Boss",25,5,"8+","160金、回復藥 x1");
     db.ref("roomInfo").set({mode:"enemy",content:""});
     return;
   }
 
-  if(node === "finalBoss"){
+  if(node==="finalBoss"){
     setEnemy("最終Boss",40,5,"7+","最終故事");
     db.ref("roomInfo").set({mode:"enemy",content:""});
     return;
   }
 
-  db.ref("map/roomTypes/" + node).once("value").then(snap=>{
-    const type = snap.val();
+  db.ref("map/roomTypes/"+node).once("value").then(snap=>{
+    const type=snap.val();
 
-    if(type === "monster"){
+    if(type==="monster"){
       if(node.startsWith("A")){
         randomPick([
-          () => setEnemy("小怪A",6,2,"6+","40金"),
-          () => setEnemy("小怪B",10,3,"7+","50金"),
-          () => setEnemy("小怪C",14,4,"8+","60金")
+          ()=>setEnemy("小怪A",6,2,"6+","40金"),
+          ()=>setEnemy("小怪B",10,3,"7+","60金"),
+          ()=>setEnemy("小怪C",14,4,"8+","60金")
         ])();
       }else{
         randomPick([
-          () => setEnemy("小怪A2",8,3,"6+","70金"),
-          () => setEnemy("小怪B2",12,4,"7+","85金"),
-          () => setEnemy("小怪C2",16,5,"8+","100金")
+          ()=>setEnemy("小怪A2",8,3,"6+","60金"),
+          ()=>setEnemy("小怪B2",12,4,"7+","80金"),
+          ()=>setEnemy("小怪C2",16,5,"8+","100金")
         ])();
       }
+
       db.ref("roomInfo").set({mode:"enemy",content:""});
       return;
     }
 
-    db.ref("enemy").set({name:"未出現",hp:0,maxHp:0,atk:0,hit:"-",drop:""});
+    clearEnemy();
 
-    if(type === "luck"){
-		db.ref("roomInfo").set({
-		mode:"room",
-		content:`✨【幸運房】
-	━━━━━━━━━━━━
-	❌ 失敗｜2～5
-	無事發生
+    if(type==="luck"){
+      db.ref("roomInfo").set({
+        mode:"room",
+        content:`✨【幸運房】
+━━━━━━━━━━━━
+❌ 失敗｜2～5
+無事發生
 
-	🟡 普通｜6～10
-	💰 100金、💊 高級回復藥 ×1
+🟡 普通｜6～10
+💰 100金、💊 高級回復藥 ×1
 
-	🟢 大成功｜11～12
-	💰 200金、💊 高級回復藥 ×1`
-	  });
-	  return;
-}
+🟢 大成功｜11～12
+💰 200金、💊 高級回復藥 ×1`
+      });
+      return;
+    }
 
-    const event = randomPick([
-        `📦【寶箱房】
+    const event=randomPick([
+      `📦【寶箱房】
 ━━━━━━━━━━━━
 ❌ 失敗｜2～5
 無法開啟 + 輕微扣血：2HP
@@ -381,7 +420,7 @@ function triggerRoom(node){
 🟢 大成功｜11～12
 💰 160金、💊 高級回復藥 ×1`,
 
-  `⚠️【陷阱房】
+      `⚠️【陷阱房】
 ━━━━━━━━━━━━
 ❌ 大失敗｜2～5
 扣 6HP、失去1個道具
@@ -392,7 +431,7 @@ function triggerRoom(node){
 🟢 大成功｜11～12
 💰 +20金`,
 
-  `🌀【時空流浪者】
+      `🌀【時空流浪者】
 ━━━━━━━━━━━━
 類型1：⚔️ 強化武器
 → 攻擊 +3（可疊加，上限12）
@@ -402,15 +441,19 @@ function triggerRoom(node){
 
 類型3：🔁 命運逆轉
 → 可指定骰子結果一次`
-]);
-    db.ref("roomInfo").set({mode:"room",content:event});
+    ]);
+
+    db.ref("roomInfo").set({
+      mode:"room",
+      content:event
+    });
   });
 }
 
 function moveRoom(dir){
   db.ref("map/currentNode").once("value").then(snap=>{
-    const current = snap.val() || "start";
-    const next = moveMap[current]?.[dir];
+    const current=snap.val()||"start";
+    const next=moveMap[current]?.[dir];
 
     if(!next){
       alert("這個方向無法前進。");
@@ -423,7 +466,7 @@ function moveRoom(dir){
 }
 
 function resetGame(){
-  if (!confirm("確定要重置遊戲？")) return;
+  if(!confirm("確定要重置遊戲？"))return;
 
   db.ref().set({
     players:{},
@@ -446,3 +489,6 @@ function resetGame(){
   });
 }
 </script>
+
+</body>
+</html>

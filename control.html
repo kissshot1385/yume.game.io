@@ -56,7 +56,9 @@ function triggerRoom(node){if(node==="midBoss"){db.ref().update({eventState:null
 可購買特殊商品：
 
 ⚔️ 強化武器：攻擊 +3（本場，上限12）
+
 🛡️ 時間護盾：3回合傷害歸0
+
 🔁 命運逆轉：指定骰子結果一次`
 }]);setEventRoom(event.type,event.content);});}
 function startBattle(){battleState.active=true;battleState.phase="player1";db.ref("eventState").set(null);updateBattleText();setBattleLog("戰鬥開始！");}

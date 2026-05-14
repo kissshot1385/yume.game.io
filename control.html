@@ -16,8 +16,33 @@ body{background:#111;color:#f4e6c8;font-family:"Noto Sans TC",sans-serif;padding
 <section><h2>干涉次數</h2><div class="row"><div class="col"><h3>玩家1</h3><button onclick="setInterfere('player1',0)">0</button><button onclick="setInterfere('player1',1)">1</button><button onclick="setInterfere('player1',2)">2</button><button onclick="setInterfere('player1',3)">3</button><button onclick="setInterfere('player1',4)">4</button><button onclick="setInterfere('player1',5)">5</button></div><div class="col"><h3>玩家2</h3><button onclick="setInterfere('player2',0)">0</button><button onclick="setInterfere('player2',1)">1</button><button onclick="setInterfere('player2',2)">2</button><button onclick="setInterfere('player2',3)">3</button><button onclick="setInterfere('player2',4)">4</button><button onclick="setInterfere('player2',5)">5</button></div></div></section>
 <section><h2>使用中道具</h2><button onclick="useInfoMerchant()">情報商（永久顯示幸運房）</button><div class="row"><div class="col"><h3>玩家1</h3><button onclick="toggleActive('player1','weaponBoost')">強化武器</button><button onclick="toggleActive('player1','shield')">時間護盾</button></div><div class="col"><h3>玩家2</h3><button onclick="toggleActive('player2','weaponBoost')">強化武器</button><button onclick="toggleActive('player2','shield')">時間護盾</button></div></div></section>
 <section><h2>迷宮移動</h2><button onclick="moveRoom('L')">← 左</button><button onclick="moveRoom('M')">↑ 中</button><button onclick="moveRoom('R')">→ 右</button></section>
-<section><h2>血量控制</h2><div class="row"><div class="col"><h3>玩家1</h3><button onclick="changeHp('players/player1',-1)">-1</button><button onclick="changeHp('players/player1',-5)">-5</button><button onclick="changeHp('players/player1',6)">+6</button><button onclick="changeHp('players/player1',12)">+12</button></div><div class="col"><h3>玩家2</h3><button onclick="changeHp('players/player2',-1)">-1</button><button onclick="changeHp('players/player2',-5)">-5</button><button onclick="changeHp('players/player2',6)">+6</button><button onclick="changeHp('players/player2',12)">+12</button></div></div><br><button onclick="changeHp('enemy',-1)">敵人 -1</button><button onclick="changeHp('enemy',-3)">敵人 -3</button><button onclick="changeHp('enemy',-6)">敵人 -6</button></section>
+
+<section>
+<h2>血量控制</h2>
+
+<div class="row">
+<div class="col">
+<h3>玩家1</h3>
+<button onclick="changeHp('players/player1',6)">+6</button>
+<button onclick="changeHp('players/player1',12)">+12</button>
+</div>
+
+<div class="col">
+<h3>玩家2</h3>
+<button onclick="changeHp('players/player2',6)">+6</button>
+<button onclick="changeHp('players/player2',12)">+12</button>
+</div>
+</div>
+</section>
+
+
 <section><h2>🎲 擲骰子結果</h2><div id="battleTurn">目前狀態：尚未開始戰鬥</div><button onclick="rollDice(2)">2</button><button onclick="rollDice(3)">3</button><button onclick="rollDice(4)">4</button><button onclick="rollDice(5)">5</button><button onclick="rollDice(6)">6</button><button onclick="rollDice(7)">7</button><button onclick="rollDice(8)">8</button><button onclick="rollDice(9)">9</button><button onclick="rollDice(10)">10</button><button onclick="rollDice(11)">11</button><button onclick="rollDice(12)">12</button><div id="battleLog"></div></section>
+
+<section>
+<h2>事件 / 怪物完成</h2>
+<button onclick="clearResultPopup()">完成，隱藏獎勵框</button>
+</section>
+
 <script>
 var firebaseConfig = {
   // 貼你的 firebaseConfig
@@ -43,30 +68,415 @@ function setPlayerDef(player,val){db.ref("players/"+player+"/def").set(val);}fun
 function setInterfere(player,val){db.ref("players/"+player+"/interfere").set(val);}function toggleActive(player,key){db.ref("players/"+player+"/active/"+key).once("value").then(s=>db.ref("players/"+player+"/active/"+key).set(!s.val()));}
 function useInfoMerchant(){db.ref("infoMerchant").set(true);setBattleLog("情報商已啟用：幸運房位置永久顯示。");}
 function changeHp(path,amount){db.ref(path).once("value").then(s=>{const d=s.val();if(!d)return;const hp=Number(d.hp)||0,max=Number(d.maxHp)||0;db.ref(path+"/hp").set(Math.max(0,Math.min(max,hp+amount)));});}
-function setEnemy(name,hp,atk,hit,drop){db.ref("enemy").set({name:name,hp:hp,maxHp:hp,atk:atk,hit:hit,drop:drop});}
+function setEnemy(name,hp,atk,hit,drop,visual){
+  db.ref("enemy").set({
+    name:name,
+    hp:hp,
+    maxHp:hp,
+    atk:atk,
+    hit:hit,
+    drop:drop
+  });
+
+  setVisualImage(visual || "map");
+}
+function setVisualImage(name){
+  db.ref("visualImage").set(name);
+}
+
 function clearEnemy(){db.ref("enemy").set({name:"未出現",hp:0,maxHp:0,atk:0,hit:"-",drop:""});}
 function randomPick(arr){return arr[Math.floor(Math.random()*arr.length)];}function shuffle(arr){return arr.sort(()=>Math.random()-0.5);}
 function generateRoomTypes(){const roomTypes={};const a=shuffle(["monster","monster","monster","monster","monster","question","question","question","luck"]);for(let i=1;i<=9;i++)roomTypes["A"+i]=a[i-1];const b=shuffle(["monster","monster","monster","monster","monster","monster","monster","question","question","question","question","luck"]);for(let i=1;i<=12;i++)roomTypes["B"+i]=b[i-1];return roomTypes;}
 const moveMap={start:{L:"A1",M:"A2",R:"A3"},A1:{L:"A4",R:"A5"},A2:{L:"A4",M:"A5",R:"A6"},A3:{L:"A5",R:"A6"},A4:{L:"A7",R:"A8"},A5:{L:"A7",M:"A8",R:"A9"},A6:{L:"A8",R:"A9"},A7:{M:"midBoss"},A8:{M:"midBoss"},A9:{M:"midBoss"},midBoss:{L:"B1",M:"B2",R:"B3"},B1:{L:"B4",R:"B5"},B2:{L:"B6",R:"B7"},B3:{L:"B8",R:"B9"},B4:{M:"B10"},B5:{L:"B10",R:"B11"},B6:{L:"B10",R:"B11"},B7:{L:"B11",R:"B12"},B8:{L:"B11",R:"B12"},B9:{M:"B12"},B10:{M:"finalBoss"},B11:{M:"finalBoss"},B12:{M:"finalBoss"}};
-function moveRoom(dir){db.ref("map/currentNode").once("value").then(s=>{const current=s.val()||"start";const next=moveMap[current]?.[dir];if(!next){alert("這方向不能前進");return;}db.ref().update({"map/currentNode":next,eventResult:"",eventState:null});triggerRoom(next);});}
+function moveRoom(dir){
+
+  db.ref("eventResult").set("");
+  db.ref("rewardResult").set("");
+
+  db.ref("map/currentNode").once("value").then(s=>{
+
+    const current=s.val()||"start";
+    const next=moveMap[current]?.[dir];
+
+    if(!next){
+      alert("這方向不能前進");
+      return;
+    }
+
+    db.ref("map/currentNode").set(next);
+    triggerRoom(next);
+  });
+}
+
+function clearResultPopup(){
+
+  db.ref().update({
+
+    eventResult:"",
+    rewardResult:"",
+
+    visualImage:"map"
+  });
+
+  setBattleLog("事件 / 怪物獎勵提示已關閉。");
+}
+
 function setEventRoom(type,content){clearEnemy();battleState.active=false;updateBattleText();db.ref().update({roomInfo:{mode:"room",content:content},eventState:{active:true,type:type},eventResult:"",battleTurn:"none"});setBattleLog("事件開始：請按下擲骰子結果。");}
-function triggerRoom(node){if(node==="midBoss"){db.ref().update({eventState:null,eventResult:""});setEnemy("中Boss",25,5,"7+","160金、回復藥 x1");db.ref("roomInfo").set({mode:"enemy",content:""});startBattle();return;}if(node==="finalBoss"){db.ref().update({eventState:null,eventResult:""});setEnemy("最終Boss",40,5,"7+","最終故事");db.ref("roomInfo").set({mode:"enemy",content:""});startBattle();return;}db.ref("map/roomTypes/"+node).once("value").then(s=>{const type=s.val();if(type==="monster"){db.ref().update({eventState:null,eventResult:""});if(node.startsWith("A")){randomPick([()=>setEnemy("小怪A",6,2,"6+","40金"),()=>setEnemy("小怪B",10,3,"7+","60金"),()=>setEnemy("小怪C",14,4,"8+","80金")])();}else{randomPick([()=>setEnemy("小怪A2",8,3,"6+","60金"),()=>setEnemy("小怪B2",12,4,"7+","80金"),()=>setEnemy("小怪C2",16,5,"8+","100金")])();}db.ref("roomInfo").set({mode:"enemy",content:""});startBattle();return;}if(type==="luck"){setEventRoom("luck",`✨【幸運房】\n━━━━━━━━━━━━\n❌ 失敗｜2～5\n無事發生\n\n🟡 普通｜6～10\n💰 100金、💊 高級回復藥 ×1\n\n🟢 大成功｜11～12\n💰 200金、💊 高級回復藥 ×1`);return;}const event=randomPick([{type:"chest",content:`📦【寶箱房】\n━━━━━━━━━━━━\n❌ 大失敗｜2～5\n無法開啟 + 輕微扣血：2HP\n\n🟡 成功｜6～10\n💰 80金、💊 回復藥 ×1\n\n🟢 大成功｜11～12\n💰 160金、💊 高級回復藥 ×1`},{type:"trap",content:`⚠️【陷阱房】\n━━━━━━━━━━━━\n❌ 大失敗｜2～5\n扣 6HP、失去1個道具\n\n🟡 失敗｜6～10\n扣 4HP\n\n🟢 大成功｜11～12\n💰 +20金`},{type:"wanderer",content:
-`🌀【時空流浪者】
+function triggerRoom(node){
+
+  if(node==="midBoss"){
+
+    db.ref("eventResult").set("");
+
+    setEnemy(
+      "中Boss",
+      25,
+      5,
+      "7+",
+      "160金、回復藥 x1",
+      "boss1"
+    );
+
+    db.ref("roomInfo").set({
+      mode:"enemy",
+      content:""
+    });
+
+    startBattle();
+
+    return;
+  }
+
+  if(node==="finalBoss"){
+
+    db.ref("eventResult").set("");
+
+    setEnemy(
+      "最終Boss",
+      40,
+      5,
+      "7+",
+      "最終故事",
+      "boss2"
+    );
+
+    db.ref("roomInfo").set({
+      mode:"enemy",
+      content:""
+    });
+
+    startBattle();
+
+    return;
+  }
+
+  db.ref("map/roomTypes/"+node).once("value").then(s=>{
+
+    const type=s.val();
+
+    if(type==="monster"){
+
+      db.ref("eventResult").set("");
+
+      if(node.startsWith("A")){
+
+        randomPick([
+
+          ()=>setEnemy("小怪A",6,2,"6+","40金","monster_a1"),
+          ()=>setEnemy("小怪B",10,3,"7+","60金","monster_b1"),
+          ()=>setEnemy("小怪C",14,4,"8+","80金","monster_c1")
+
+        ])();
+
+      }else{
+
+        randomPick([
+
+          ()=>setEnemy("小怪A2",8,3,"6+","60金","monster_a2"),
+          ()=>setEnemy("小怪B2",12,4,"7+","80金","monster_b2"),
+          ()=>setEnemy("小怪C2",16,5,"8+","100金","monster_c2")
+
+        ])();
+      }
+
+      db.ref("roomInfo").set({
+        mode:"enemy",
+        content:""
+      });
+
+      startBattle();
+
+      return;
+    }
+
+    clearEnemy();
+
+    battleState.active=false;
+
+    updateBattleText();
+
+    if(type==="luck"){
+
+      setVisualImage("luckrm");
+
+      db.ref("roomInfo").set({
+        mode:"room",
+        content:`✨【幸運房】
 ━━━━━━━━━━━━
-可購買特殊商品：
+❌ 失敗｜2～5
+無事發生
 
-⚔️ 強化武器：攻擊 +3（本場，上限12）
+🟡 普通｜6～10
+💰 100金、💊 高級回復藥 ×1
 
-🛡️ 時間護盾：3回合傷害歸0
+🟢 大成功｜11～12
+💰 200金、💊 高級回復藥 ×1`
+      });
 
-🔁 命運逆轉：指定骰子結果一次`
-}]);setEventRoom(event.type,event.content);});}
-function startBattle(){battleState.active=true;battleState.phase="player1";db.ref("eventState").set(null);updateBattleText();setBattleLog("戰鬥開始！");}
-function endBattle(text){battleState.active=false;updateBattleText();setBattleLog(text);}function hitRequired(hit){return Number(String(hit).replace("+",""));}function alive(p){return p&&Number(p.hp)>0;}
+      db.ref("eventState").set({
+        active:true,
+        type:"luck"
+      });
+
+      return;
+    }
+
+    const event=randomPick([
+      {
+        type:"chest",
+        text:`📦【寶箱房】
+━━━━━━━━━━━━
+❌ 失敗｜2～5
+無法開啟 + 輕微扣血：2HP
+
+🟡 普通｜6～10
+💰 80金、💊 回復藥 ×1
+
+🟢 大成功｜11～12
+💰 160金、💊 高級回復藥 ×1`
+      },
+
+      {
+        type:"trap",
+        text:`⚠️【陷阱房】
+━━━━━━━━━━━━
+❌ 大失敗｜2～5
+扣 6HP、失去1個道具
+
+🟡 普通｜6～10
+扣 4HP
+
+🟢 大成功｜11～12
+💰 +20金`
+      },
+
+      {
+        type:"wanderer",
+        text:`🌀【時空流浪者】
+━━━━━━━━━━━━
+特殊道具：
+
+⚔️ 強化武器：攻擊 +3
+
+🛡️ 時間護盾：免傷3回合
+
+🔁 命運逆轉：指定骰子一次`
+      }
+    ]);
+
+    if(event.type==="chest"){
+      setVisualImage("rm_Chest");
+    }
+
+    if(event.type==="trap"){
+      setVisualImage("rm_trap");
+    }
+
+    if(event.type==="wanderer"){
+
+      db.ref("merchantCount").once("value").then(ms=>{
+
+        const count=Number(ms.val()||0)+1;
+
+        db.ref("merchantCount").set(count);
+
+        setVisualImage(count>=2 ? "rm_merchant2" : "rm_merchant");
+      });
+    }
+
+    db.ref("roomInfo").set({
+      mode:"room",
+      content:event.text
+    });
+
+    db.ref("eventState").set({
+      active:true,
+      type:event.type
+    });
+  });
+}
+function startBattle(){
+  battleState.active=true;
+  battleState.phase="player1";
+  db.ref("eventState").set(null);
+  updateBattleText();
+  setBattleLog("戰鬥開始！");
+}
+
+function endBattle(text){
+  battleState.active=false;
+  updateBattleText();
+  setBattleLog(text);
+}
+
+
+function finishEnemyBattle(log, enemy){
+  db.ref("rewardResult").set(enemy.drop || "未知獎勵");
+  db.ref("visualImage").set("map");
+  endBattle(log + "\n怪物被擊敗！");
+}
+
+function hitRequired(hit){return Number(String(hit).replace("+",""));}function alive(p){return p&&Number(p.hp)>0;}
 function damageAllPlayers(players,amount){const updates={};["player1","player2"].forEach(k=>{const p=players[k];if(!alive(p))return;updates["players/"+k+"/hp"]=Math.max(0,Number(p.hp)-amount);});return updates;}
-function resolveEvent(value,type,players){let result="";let updates={eventState:null,battleTurn:"none"};if(type==="trap"){if(value<=5){Object.assign(updates,damageAllPlayers(players,6));result="大失敗: 失去6HP, 失去1個道具";}else if(value<=10){Object.assign(updates,damageAllPlayers(players,4));result="失敗: 失去4HP";}else result="大成功: 獲得💰20金";}if(type==="chest"){if(value<=5){Object.assign(updates,damageAllPlayers(players,2));result="大失敗: 無法開啟, 並失去2HP";}else if(value<=10)result="成功: 獲得💰80金 + 💊 回復藥 ×1";else result="大成功: 獲得💰160金 + 💊 高級回復藥 ×1";}if(type==="luck"){if(value<=5)result="大失敗: 無任何事發生";else if(value<=10)result="成功: 獲得💰100金 + 💊 高級回復藥 ×1";else result="大成功: 獲得💰200金 + 💊 高級回復藥 ×1";}if(type==="wanderer")result="時空流浪者: 事件結束";updates.eventResult=result;db.ref().update(updates);setBattleLog("事件結果：\n"+result);}
-function rollDice(value){db.ref().once("value").then(s=>{const data=s.val()||{};const enemy=data.enemy||{};const players=data.players||{};if(data.eventState&&data.eventState.active){resolveEvent(value,data.eventState.type,players);return;}if(!battleState.active)return;if(battleState.phase==="player1"){const p=players.player1;if(alive(p)){let log=`玩家1 擲出 ${value}\n`;if(value>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&value>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);db.ref("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){endBattle(log+"\n怪物被擊敗！");return;}}else log+="未命中";setBattleLog(log);}battleState.phase=alive(players.player2)?"player2":"enemy";updateBattleText();return;}if(battleState.phase==="player2"){const p=players.player2;if(alive(p)){let log=`玩家2 擲出 ${value}\n`;if(value>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&value>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);db.ref("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){endBattle(log+"\n怪物被擊敗！");return;}}else log+="未命中";setBattleLog(log);}battleState.phase="enemy";updateBattleText();return;}if(battleState.phase==="enemy"){let log=`怪物 擲出 ${value}\n`;if(value>=hitRequired(enemy.hit)){const updates={};["player1","player2"].forEach(k=>{const p=players[k];if(!alive(p))return;let damage=Math.max(0,Number(enemy.atk)-Number(p.def||0));if(p.active?.shield)damage=0;updates["players/"+k+"/hp"]=Math.max(0,Number(p.hp)-damage);log+=`\n${k==="player1"?"玩家1":"玩家2"} 受到 ${damage} 傷害`;});db.ref().update(updates);}else log+="怪物未命中";setBattleLog(log);battleState.phase="player1";updateBattleText();}});}
-function resetGame(){battleState={active:false,phase:"player1"};updateBattleText();setBattleLog("");db.ref().set({players:{},enemy:{name:"未出現",hp:0,maxHp:0,atk:0,hit:"-",drop:""},map:{currentNode:"start",roomTypes:generateRoomTypes()},roomInfo:{mode:"room",content:"請選擇方向，進入8號時間迷宮。"},battleTurn:"none",eventState:null,eventResult:"",infoMerchant:false});}
+function resolveEvent(value,type,players){
+
+  let result="";
+
+  let updates={
+    eventState:null,
+    battleTurn:"none",
+    visualImage:"map"
+  };
+
+  if(type==="trap"){
+
+    if(value<=5){
+
+      Object.assign(
+        updates,
+        damageAllPlayers(players,6)
+      );
+
+      result="大失敗: 失去6HP, 失去1個道具";
+
+    }else if(value<=10){
+
+      Object.assign(
+        updates,
+        damageAllPlayers(players,4)
+      );
+
+      result="失敗: 失去4HP";
+
+    }else{
+
+      result="大成功: 獲得💰20金";
+    }
+  }
+
+  if(type==="chest"){
+
+    if(value<=5){
+
+      Object.assign(
+        updates,
+        damageAllPlayers(players,2)
+      );
+
+      result="大失敗: 無法開啟, 並失去2HP";
+
+    }else if(value<=10){
+
+      result="成功: 獲得💰80金 + 💊 回復藥 ×1";
+
+    }else{
+
+      result="大成功: 獲得💰160金 + 💊 高級回復藥 ×1";
+    }
+  }
+
+  if(type==="luck"){
+
+    if(value<=5){
+
+      result="大失敗: 無任何事發生";
+
+    }else if(value<=10){
+
+      result="成功: 獲得💰100金 + 💊 高級回復藥 ×1";
+
+    }else{
+
+      result="大成功: 獲得💰200金 + 💊 高級回復藥 ×1";
+    }
+  }
+
+  if(type==="wanderer"){
+
+    result="時空流浪者: 事件結束";
+  }
+
+  updates.eventResult=result;
+
+  db.ref().update(updates);
+
+  setBattleLog("事件結果：\n"+result);
+}
+function rollDice(value){db.ref().once("value").then(s=>{const data=s.val()||{};const enemy=data.enemy||{};const players=data.players||{};if(data.eventState&&data.eventState.active){resolveEvent(value,data.eventState.type,players);return;}if(!battleState.active)return;if(battleState.phase==="player1"){const p=players.player1;if(alive(p)){let log=`玩家1 擲出 ${value}\n`;if(value>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&value>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);db.ref("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
+  finishEnemyBattle(log, enemy);
+  return;
+}}else log+="未命中";setBattleLog(log);}battleState.phase=alive(players.player2)?"player2":"enemy";updateBattleText();return;}if(battleState.phase==="player2"){const p=players.player2;if(alive(p)){let log=`玩家2 擲出 ${value}\n`;if(value>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&value>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);db.ref("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
+  finishEnemyBattle(log, enemy);
+  return;
+}}else log+="未命中";setBattleLog(log);}battleState.phase="enemy";updateBattleText();return;}if(battleState.phase==="enemy"){let log=`怪物 擲出 ${value}\n`;if(value>=hitRequired(enemy.hit)){const updates={};["player1","player2"].forEach(k=>{const p=players[k];if(!alive(p))return;let damage=Math.max(0,Number(enemy.atk)-Number(p.def||0));if(p.active?.shield)damage=0;updates["players/"+k+"/hp"]=Math.max(0,Number(p.hp)-damage);log+=`\n${k==="player1"?"玩家1":"玩家2"} 受到 ${damage} 傷害`;});db.ref().update(updates);}else log+="怪物未命中";setBattleLog(log);battleState.phase="player1";updateBattleText();}});}
+function resetGame(){
+
+  battleState={
+    active:false,
+    phase:"player1"
+  };
+
+  updateBattleText();
+
+  db.ref().set({
+
+    players:{},
+
+    enemy:{
+      name:"未出現",
+      hp:0,
+      maxHp:0,
+      atk:0,
+      hit:"-",
+      drop:""
+    },
+
+    map:{
+      currentNode:"start",
+      roomTypes:generateRoomTypes()
+    },
+
+    roomInfo:{
+      mode:"room",
+      content:"請選擇方向，進入8號時間迷宮。"
+    },
+
+    eventState:{
+      active:false,
+      type:""
+    },
+
+    eventResult:"",
+    rewardResult:"",
+
+    visualImage:"map",
+    merchantCount:0,
+
+    infoMerchant:false,
+
+    battleTurn:"none"
+  });
+}
 updateBattleText();
 </script>
 </body>

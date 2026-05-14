@@ -3,43 +3,109 @@
 <head>
 <meta charset="utf-8">
 <title>8號時間迷宮｜顯示頁</title>
+
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase.js"></script>
 
 <style>
+
 html,body{
-  margin:0;width:100%;height:100%;overflow:hidden;
-  background:#050505;color:#fff;
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+
+  background:#000;
+
+  color:#fff;
   font-family:"Noto Sans TC",sans-serif;
 }
 
 .screen{
-  height:100vh;padding:22px;box-sizing:border-box;
-  display:grid;grid-template-columns:1fr 1.05fr;gap:22px;
+  height:100vh;
+  padding:22px;
+  box-sizing:border-box;
+
+  display:grid;
+  grid-template-columns:1fr 1.05fr;
+  gap:22px;
 }
 
-.left{display:grid;grid-template-rows:.72fr 1.28fr;gap:22px;}
+.left{
+  display:grid;
+  grid-template-rows:44% 55%;
+  gap:22px;
+}
 
 .panel{
-  border:2px solid #b87845;border-radius:36px;background:#080808;
-  padding:26px;box-sizing:border-box;overflow:hidden;
+  border:2px solid rgba(184,120,69,.75);
+
+  border-radius:72px;
+
+  padding:26px;
+  box-sizing:border-box;
+  overflow:hidden;
+
+  background-image:
+    linear-gradient(rgba(25,15,5,.18),rgba(25,15,5,.18)),
+    url("https://kissshot1385.github.io/yume.game.io/bg.png");
+
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+  background-attachment:fixed;
 }
 
-h1{margin:0 0 16px;font-size:42px;}
-h2{margin:0 0 12px;font-size:30px;}
-.stat{font-size:24px;margin:8px 0;color:#f4e6c8;}
+.turnActive{
+  animation:turnGlow 1s infinite alternate;
+}
+
+@keyframes turnGlow{
+
+  from{
+    box-shadow:
+      0 0 10px rgba(255,211,106,.3),
+      0 0 20px rgba(255,211,106,.25);
+  }
+
+  to{
+    box-shadow:
+      0 0 25px rgba(255,211,106,.9),
+      0 0 45px rgba(255,211,106,.6);
+  }
+}
+
+h1{
+  margin:0 0 16px;
+  font-size:42px;
+}
+
+h2{
+  margin:0 0 12px;
+  font-size:30px;
+}
+
+.stat{
+  font-size:24px;
+  margin:8px 0;
+  color:#f4e6c8;
+}
 
 .players{
-  height:calc(100% - 60px);
+  height:100%;
   display:flex;
   gap:18px;
 }
 
 .playerCard{
   flex:1;
+
   border:1px solid #8b6b3e;
-  border-radius:20px;
+
+  border-radius:42px;
+
   padding:18px;
-  background:#15110d;
+
+  background:rgba(21,17,13,.6);
 
   display:flex;
   flex-direction:column;
@@ -47,36 +113,73 @@ h2{margin:0 0 12px;font-size:30px;}
 }
 
 .playerCard h2{
-  font-size:clamp(28px, 2.6vw, 42px);
+  font-size:clamp(28px,2.6vw,42px);
 }
 
 .playerCard .stat{
-  font-size:clamp(24px, 2.2vw, 36px);
+  font-size:clamp(24px,2.2vw,36px);
 }
 
 .playerCard .box{
-  font-size:clamp(20px, 1.8vw, 30px);
+  font-size:clamp(20px,1.8vw,30px);
   padding:10px 14px;
 }
 
-.hpWrap{position:relative;margin:12px 0;}
+.hpWrap{
+  position:relative;
+  margin:12px 0;
+}
 
 .bar{
-  width:100%;height:34px;background:#7b1f1f;
-  border:2px solid #d0a45a;border-radius:14px;overflow:hidden;
+  width:100%;
+  height:34px;
+
+  background:#7b1f1f;
+
+  border:2px solid #d0a45a;
+
+  border-radius:24px;
+
+  overflow:hidden;
 }
 
 .fill{
-  height:100%;background:#29a745;transition:.3s;
+  height:100%;
+  background:#29a745;
+  transition:.3s;
   box-shadow:inset 0 0 10px rgba(0,0,0,.6);
 }
 
-.row{display:flex;gap:10px;flex-wrap:wrap;}
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
 
 .box{
-  border:1px solid #8b6b3e;padding:8px 12px;border-radius:12px;
-  font-size:20px;min-width:96px;text-align:center;
+  border:1px solid #8b6b3e;
+
+  padding:8px 12px;
+
+  border-radius:22px;
+
+  font-size:20px;
+
+  min-width:96px;
+
+  text-align:center;
 }
+
+#infoContent{
+  height:100%;
+
+  padding:0 12px 24px 0;
+
+  box-sizing:border-box;
+
+  overflow:hidden;
+}
+
 #infoContent .row{
   margin-top:18px;
 }
@@ -89,113 +192,296 @@ h2{margin:0 0 12px;font-size:30px;}
   align-items:center;
   justify-content:center;
 
-  font-size:clamp(20px, 1.8vw, 30px);
+  font-size:clamp(20px,1.8vw,30px);
 }
 
 .enemyName{
-  font-size:clamp(34px, 3vw, 52px);
+  font-size:clamp(34px,3vw,52px);
+
   font-weight:bold;
+
   margin-bottom:18px;
 }
 
 .enemyHp{
-  font-size:clamp(30px, 2.6vw, 46px);
+  font-size:clamp(30px,2.6vw,46px);
+
   margin-top:14px;
   margin-bottom:14px;
 }
 
-.empty{opacity:.35;}
-
-.reward{
-  display:none;color:#ffd36a;border:1px solid #d0a45a;border-radius:14px;
-  padding:12px;margin-bottom:14px;background:#2a2118;font-size:26px;
-  text-align:center;animation:glow 1s infinite alternate;
+.empty{
+  opacity:.35;
 }
 
-@keyframes glow{
-  from{box-shadow:0 0 10px #ffd36a;}
-  to{box-shadow:0 0 25px #ffd36a;}
+.flash-damage .bar{
+  animation:damageFlash .45s ease-in-out;
 }
 
-.flash-damage .bar{animation:damageFlash .45s ease-in-out;}
 @keyframes damageFlash{
-  0%{background:#7b1f1f;}
-  30%{background:#ff2b2b;box-shadow:0 0 25px #ff3333;}
-  100%{background:#7b1f1f;}
+
+  0%{
+    background:#7b1f1f;
+  }
+
+  30%{
+    background:#ff2b2b;
+    box-shadow:0 0 25px #ff3333;
+  }
+
+  100%{
+    background:#7b1f1f;
+  }
 }
 
-.flash-heal .bar{animation:healFlash .6s ease-in-out;}
+.flash-heal .bar{
+  animation:healFlash .6s ease-in-out;
+}
+
 @keyframes healFlash{
-  0%{background:#7b1f1f;}
-  30%{background:#00ff88;box-shadow:0 0 30px #00ff88;}
-  100%{background:#7b1f1f;}
+
+  0%{
+    background:#7b1f1f;
+  }
+
+  30%{
+    background:#00ff88;
+    box-shadow:0 0 30px #00ff88;
+  }
+
+  100%{
+    background:#7b1f1f;
+  }
 }
 
 .float-number{
-  position:absolute;left:50%;top:-12px;transform:translateX(-50%);
-  font-size:32px;font-weight:bold;pointer-events:none;
-  animation:floatUp 1s ease-out forwards;z-index:20;
+  position:absolute;
+
+  left:50%;
+  top:-12px;
+
+  transform:translateX(-50%);
+
+  font-size:32px;
+
+  font-weight:bold;
+
+  pointer-events:none;
+
+  animation:floatUp 1s ease-out forwards;
+
+  z-index:20;
+
   text-shadow:0 0 12px currentColor;
 }
 
-.float-damage{color:#ff4b4b;}
-.float-heal{color:#00ff88;}
+.float-damage{
+  color:#ff4b4b;
+}
+
+.float-heal{
+  color:#00ff88;
+}
 
 @keyframes floatUp{
-  0%{opacity:0;transform:translate(-50%,10px) scale(.8);}
-  20%{opacity:1;transform:translate(-50%,-6px) scale(1.15);}
-  100%{opacity:0;transform:translate(-50%,-56px) scale(1);}
+
+  0%{
+    opacity:0;
+    transform:translate(-50%,10px) scale(.8);
+  }
+
+  20%{
+    opacity:1;
+    transform:translate(-50%,-6px) scale(1.15);
+  }
+
+  100%{
+    opacity:0;
+    transform:translate(-50%,-56px) scale(1);
+  }
 }
 
 .roomText{
   width:100%;
   height:100%;
+
   box-sizing:border-box;
 
-  font-size:clamp(34px, 3.8vw, 56px);
-  line-height:1.45;
+  font-size:clamp(34px,3.8vw,56px);
+
+  line-height:1.2;
+
   white-space:pre-line;
+
   color:#fff;
 
   display:flex;
   flex-direction:column;
+  justify-content:flex-start;
+
+  margin-top:-8px;
+}
+
+.mapPanel{
+  padding:0;
+  background-image:
+    linear-gradient(rgba(25,15,5,.18),rgba(25,15,5,.18)),
+    url("https://kissshot1385.github.io/yume.game.io/bg.png");
+
+  background-size:cover;
+  background-position:center;
+  background-repeat:no-repeat;
+}
+
+.mapStage{
+  position:relative;
+  width:100%;
+  height:100%;
+  display:flex;
+  align-items:center;
   justify-content:center;
 }
 
-#infoContent{
-  height:calc(100% - 60px);
+.mapCanvas{
+  position:relative;
+  height:100%;
+  width:100%;
+  max-width:100%;
+}
+
+.mapImage{
+  position:absolute;
+
+  left:0;
+  top:-6%;
+
+  width:100%;
+  height:112%;
+
+  object-fit:contain;
+  object-position:center;
+
+  z-index:1;
+  pointer-events:none;
+}
+
+.mapImage.fullCover{
+  left:0;
+  top:0;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  border-radius:72px;
 }
 
 .mapSvg{
-  width:100%;height:100%;background:#020202;
-  border:1px solid #8b6b3e;border-radius:28px;
-}
+  position:absolute;
+  inset:0;
 
-.edge{stroke:#ff7a1a;stroke-width:.55;}
+  width:100%;
+  height:100%;
 
-.node{
-  fill:#070707;stroke:#f2f2f2;stroke-width:.8;
-}
+  background:transparent;
 
-.nodeHidden{opacity:.18;}
+  border:none;
 
-.bossNode{
-  fill:#080808;stroke:#9b0016;stroke-width:1.1;
-}
-
-.startNode{
-  fill:#050505;stroke:#16a34a;stroke-width:1.1;
+  z-index:2;
 }
 
 .nodeText{
-  font-size:4px;fill:#fff;text-anchor:middle;
-  dominant-baseline:middle;font-weight:bold;
+  font-size:3.8px;
+
+  fill:#000;
+
+  font-weight:bold;
+
+  text-anchor:middle;
+  dominant-baseline:middle;
 }
 
 .currentStar{
-  font-size:7px;fill:#ffd36a;text-anchor:middle;
-  dominant-baseline:middle;text-shadow:0 0 8px #ffd36a;
+  font-size:7px;
+
+  fill:#ffd36a;
+
+  text-anchor:middle;
+  dominant-baseline:middle;
 }
+
+.bossLabel{
+  font-size:4.6px;
+
+  fill:#3a1208;
+
+  font-weight:900;
+
+  text-anchor:middle;
+  dominant-baseline:middle;
+
+  paint-order:stroke;
+
+  stroke:rgba(255,255,255,.55);
+  stroke-width:.45px;
+}
+
+.centerPopup{
+  position:fixed;
+
+  left:50%;
+  top:50%;
+
+  transform:translate(-50%,-50%);
+
+  min-width:48vw;
+  max-width:72vw;
+
+  padding:28px 42px;
+
+  border-radius:38px;
+
+  border:3px solid #ffd36a;
+
+  background:
+    linear-gradient(
+      rgba(30,20,10,.96),
+      rgba(20,12,6,.96)
+    );
+
+  color:#ffe7a3;
+
+  font-size:clamp(34px,2.8vw,64px);
+
+  font-weight:900;
+
+  text-align:center;
+
+  z-index:99999;
+
+  display:none;
+
+  box-shadow:
+    0 0 30px rgba(255,211,106,.55),
+    0 0 80px rgba(255,211,106,.25);
+
+  animation:popupGlow 1.2s infinite alternate;
+}
+
+@keyframes popupGlow{
+
+  from{
+    box-shadow:
+      0 0 25px rgba(255,211,106,.45),
+      0 0 60px rgba(255,211,106,.18);
+  }
+
+  to{
+    box-shadow:
+      0 0 45px rgba(255,211,106,.9),
+      0 0 100px rgba(255,211,106,.45);
+  }
+}
+
 </style>
 </head>
 
@@ -204,28 +490,53 @@ h2{margin:0 0 12px;font-size:30px;}
 <div class="screen">
 
   <div class="left">
-    <div class="panel">
-      <h1>冒險者資料</h1>
+
+    <div class="panel" id="playerPanel">
+
       <div class="players" id="players"></div>
+
     </div>
 
-    <div class="panel">
-      <div id="dropReward" class="reward"></div>
-      <h1 id="infoTitle">房間資訊</h1>
+    <div class="panel" id="enemyPanel">
+
+      
+
       <div id="infoContent"></div>
+
     </div>
+
   </div>
 
-  <div class="panel">
-    <h1>地圖</h1>
-    <svg class="mapSvg" id="mapSvg" viewBox="0 0 100 100"></svg>
+  <div class="panel mapPanel">
+
+    
+
+    <div class="mapStage">
+
+      <div class="mapCanvas">
+ 
+		<img class="mapImage" id="mapImage" src="https://kissshot1385.github.io/yume.game.io/map.png">
+
+        <svg
+          class="mapSvg"
+          id="mapSvg"
+          viewBox="0 0 100 100"
+        ></svg>
+
+      </div>
+
+    </div>
+
   </div>
 
 </div>
 
+<div id="centerPopup" class="centerPopup"></div>
+
 <script>
+
 var firebaseConfig = {
-  // 貼你的 firebaseConfig
+
   apiKey: "AIzaSyA9463bcgt_R9KWU5dXx0xrKQtCEBdLwkE",
   authDomain: "yume-game.firebaseapp.com",
   databaseURL: "https://yume-game-default-rtdb.asia-southeast1.firebasedatabase.app",
@@ -234,81 +545,95 @@ var firebaseConfig = {
   messagingSenderId: "902572378872",
   appId: "1:902572378872:web:293ba940026c628b94c90d",
   measurementId: "G-BD8GMZR2B5"
+
 };
 
 firebase.initializeApp(firebaseConfig);
+
 var db=firebase.database();
 
 let lastEnemyHp=null;
 let lastPlayerHp={player1:null,player2:null};
 
 const nodes={
-  start:[50,94,"開始"], midBoss:[50,52,"中級BOSS"], finalBoss:[50,7,"最終BOSS"],
+  finalBoss:[50,-8],
 
-  A1:[20,82,"A1"], A2:[50,82,"A2"], A3:[80,82,"A3"],
-  A4:[20,72,"A4"], A5:[50,72,"A5"], A6:[80,72,"A6"],
-  A7:[20,62,"A7"], A8:[50,62,"A8"], A9:[80,62,"A9"],
+  B10:[20.5,8],
+  B11:[49,8],
+  B12:[79.5,8],
 
-  B1:[20,42,"B1"], B2:[50,42,"B2"], B3:[80,42,"B3"],
-  B4:[10,32,"B4"], B5:[26,32,"B5"], B6:[42,32,"B6"],
-  B7:[58,32,"B7"], B8:[74,32,"B8"], B9:[90,32,"B9"],
-  B10:[25,22,"B10"], B11:[50,22,"B11"], B12:[75,22,"B12"]
+  B4:[10,25],
+  B5:[25.7,25],
+  B6:[42.5,25],
+  B7:[57.5,25],
+  B8:[73.8,25],
+  B9:[89.8,25],
+
+  B1:[23.8,42.5],
+  B2:[50,42.5],
+  B3:[76.2,42.5],
+
+  midBoss:[50,58.5 ],
+
+  A7:[21.3,72],
+  A8:[50,72],
+  A9:[78.7,72],
+
+  A4:[14.5,84],
+  A5:[50,84],
+  A6:[85.5,84],
+
+  A1:[20.5,96],
+  A2:[50,96],
+  A3:[79.5,96],
+
+  start:[50,109]
 };
-
-const edges=[
- ["start","A1"],["start","A2"],["start","A3"],
- ["A1","A4"],["A1","A5"],
- ["A2","A4"],["A2","A5"],["A2","A6"],
- ["A3","A5"],["A3","A6"],
- ["A4","A7"],["A4","A8"],
- ["A5","A7"],["A5","A8"],["A5","A9"],
- ["A6","A8"],["A6","A9"],
- ["A7","midBoss"],["A8","midBoss"],["A9","midBoss"],
-
- ["midBoss","B1"],["midBoss","B2"],["midBoss","B3"],
- ["B1","B4"],["B1","B5"],
- ["B2","B6"],["B2","B7"],
- ["B3","B8"],["B3","B9"],
- ["B4","B10"],
- ["B5","B10"],["B5","B11"],
- ["B6","B10"],["B6","B11"],
- ["B7","B11"],["B7","B12"],
- ["B8","B11"],["B8","B12"],
- ["B9","B12"],
- ["B10","finalBoss"],["B11","finalBoss"],["B12","finalBoss"]
-];
 
 const revealMap={
   start:["A1","A2","A3"],
-
   A1:["A4","A5"],
   A2:["A4","A5","A6"],
   A3:["A5","A6"],
-
   A4:["A7","A8"],
   A5:["A7","A8","A9"],
   A6:["A8","A9"],
-
   A7:["midBoss"],
   A8:["midBoss"],
   A9:["midBoss"],
-
   midBoss:["B1","B2","B3"],
-
   B1:["B4","B5"],
   B2:["B6","B7"],
   B3:["B8","B9"],
-
   B4:["B10"],
   B5:["B10","B11"],
   B6:["B10","B11"],
   B7:["B11","B12"],
   B8:["B11","B12"],
   B9:["B12"],
-
   B10:["finalBoss"],
   B11:["finalBoss"],
   B12:["finalBoss"]
+};
+
+const visualImages={
+  map:"map.png",
+
+  monster_a1:"monster_a1.png",
+  monster_a2:"monster_a2.png",
+  monster_b1:"monster_b1.png",
+  monster_b2:"monster_b2.png",
+  monster_c1:"monster_c1.png",
+  monster_c2:"monster_c2.png",
+
+  boss1:"boss1.png",
+  boss2:"boss2.png",
+
+  rm_Chest:"rm_Chest.png",
+  rm_trap:"rm_trap.png",
+  luckrm:"luckrm.png",
+  rm_merchant:"rm_merchant.png",
+  rm_merchant2:"rm_merchant2.png"
 };
 
 function hpPercent(hp,maxHp){
@@ -316,33 +641,48 @@ function hpPercent(hp,maxHp){
 }
 
 function roomLabel(type){
+
   if(type==="monster") return "怪物";
   if(type==="question") return "事件";
   if(type==="luck") return "✨幸運";
+
   return "";
 }
 
 function flash(id,type){
+
   const el=document.getElementById(id);
+
   if(!el)return;
+
   el.classList.remove(type);
+
   void el.offsetWidth;
+
   el.classList.add(type);
 }
 
 function showFloatNumber(id,amount){
+
   const el=document.getElementById(id);
+
   if(!el||amount===0)return;
 
   const num=document.createElement("div");
-  num.className="float-number "+(amount>0?"float-heal":"float-damage");
+
+  num.className="float-number "+(
+    amount>0?"float-heal":"float-damage"
+  );
+
   num.innerText=amount>0?"+"+amount:String(amount);
 
   el.appendChild(num);
+
   setTimeout(()=>num.remove(),1000);
 }
 
-function renderPlayer(p,label,key){
+function renderPlayer(p,label,key,infoMerchant){
+
   if(!p||!p.job)return "";
 
   const percent=hpPercent(p.hp||0,p.maxHp||1);
@@ -352,65 +692,130 @@ function renderPlayer(p,label,key){
     shield:"時間護盾"
   };
 
-  const activeHtml=Object.keys(activeNames).map(k=>
-    `<div class="box ${(p.active&&p.active[k])?"":"empty"}">${activeNames[k]}</div>`
+  let activeHtml=Object.keys(activeNames).map(k=>
+    `<div class="box ${(p.active&&p.active[k])?"":"empty"}">
+      ${activeNames[k]}
+    </div>`
   ).join("");
+
+  if(infoMerchant){
+    activeHtml+=`<div class="box">情報商</div>`;
+  }
 
   return `
   <div class="playerCard">
-    <h2>${label}</h2>
-    <div class="stat">職業：${p.job}</div>
 
-    <div class="hpWrap" id="${key}BarBox">
-      <div class="bar">
-        <div class="fill" style="width:${percent}%"></div>
-      </div>
+    <h2>${label}</h2>
+
+    <div class="stat">
+      職業：${p.job}
     </div>
 
-    <div class="stat">HP：${p.hp ?? 0} / ${p.maxHp ?? 0}</div>
+    <div class="hpWrap" id="${key}BarBox">
+
+      <div class="bar">
+        <div
+          class="fill"
+          style="width:${percent}%"
+        ></div>
+      </div>
+
+    </div>
+
+    <div class="stat">
+      HP：${p.hp??0} / ${p.maxHp??0}
+    </div>
 
     <div class="row">
-      <div class="box">攻擊力：${p.atk ?? 0}</div>
-      <div class="box">命中：${p.hit || "-"}</div>
-      ${p.job==="潛行者"?`<div class="box">9+ 傷害 +1</div>`:""}
-      ${p.job==="干涉者"?`<div class="box">干涉：${p.interfere ?? 5}/5</div>`:""}
-      <div class="box">防禦力：${p.def ?? 0}</div>
+
+      <div class="box">
+        攻擊力：${p.atk??0}
+      </div>
+
+      <div class="box">
+        命中：${p.hit||"-"}
+      </div>
+
+      ${
+        p.job==="潛行者"
+        ?`<div class="box">9+ 傷害 +1</div>`
+        :""
+      }
+
+      ${
+        p.job==="干涉者"
+        ?`<div class="box">干涉：${p.interfere??5}/5</div>`
+        :""
+      }
+
+      <div class="box">
+        防禦力：${p.def??0}
+      </div>
+
     </div>
 
     <h2 style="margin-top:16px;">狀態</h2>
+
     <div class="row">${activeHtml}</div>
+
   </div>`;
 }
 
 function renderEnemy(e){
+
   const hp=Number(e.hp||0);
   const max=Number(e.maxHp||0);
+
   const percent=hpPercent(hp,max||1);
 
   return `
-  <div class="enemyName">敵人：${e.name||"未出現"}</div>
-
-  <div class="hpWrap" id="enemyBarBox">
-    <div class="bar">
-      <div class="fill" style="width:${percent}%"></div>
-    </div>
+  <div class="enemyName">
+    敵人：${e.name||"未出現"}
   </div>
 
-  <div class="enemyHp">HP：${hp} / ${max}</div>
+  <div class="hpWrap" id="enemyBarBox">
+
+    <div class="bar">
+      <div
+        class="fill"
+        style="width:${percent}%"
+      ></div>
+    </div>
+
+  </div>
+
+  <div class="enemyHp">
+    HP：${hp} / ${max}
+  </div>
 
   <div class="row">
-    <div class="box">攻擊力：${e.atk ?? 0}</div>
-    <div class="box">命中：${e.hit || "-"}</div>
+
+    <div class="box">
+      攻擊力：${e.atk??0}
+    </div>
+
+    <div class="box">
+      命中：${e.hit||"-"}
+    </div>
+
   </div>`;
 }
 
 function renderRoom(roomInfo){
-  return `<div class="roomText">${roomInfo?.content || "尚未發現房間內容。"}</div>`;
+
+  return `
+  <div class="roomText">
+    ${roomInfo?.content||"尚未發現房間內容。"}
+  </div>`;
 }
 
+
 function drawMap(current,roomTypes){
+
   const svg=document.getElementById("mapSvg");
+
   let html="";
+
   const visible=new Set();
 
   if(revealMap[current]){
@@ -419,91 +824,185 @@ function drawMap(current,roomTypes){
 
   visible.add(current);
 
-  edges.forEach(([a,b])=>{
-    const A=nodes[a],B=nodes[b];
-    html+=`<line class="edge" x1="${A[0]}" y1="${A[1]}" x2="${B[0]}" y2="${B[1]}"/>`;
-  });
-
   Object.keys(nodes).forEach(id=>{
-    const [x,y,text]=nodes[id];
 
-    let cls="node";
-    if(id==="start") cls="startNode";
-    if(id==="midBoss"||id==="finalBoss") cls="bossNode";
+    if(!(id.startsWith("A") || id.startsWith("B"))) return;
 
-    if(id.startsWith("A")||id.startsWith("B")){
-      if(!visible.has(id)) cls+=" nodeHidden";
-    }
+    const [x,y]=nodes[id];
 
-    const rx=(id==="midBoss"||id==="finalBoss")?27:9;
-    const ry=(id==="midBoss"||id==="finalBoss")?5.5:4.5;
+    const forceShowLuck=
+      window.currentInfoMerchant===true &&
+      roomTypes?.[id]==="luck";
 
-    html+=`<ellipse class="${cls}" cx="${x}" cy="${y}" rx="${rx}" ry="${ry}"/>`;
+    if(visible.has(id) || forceShowLuck){
 
-    if(id==="start"||id==="midBoss"||id==="finalBoss"){
-      html+=`<text class="nodeText" x="${x}" y="${y}">${text}</text>`;
-    }
-
-    if((id.startsWith("A")||id.startsWith("B")) && visible.has(id)){
-      html+=`<text class="nodeText" x="${x}" y="${y}">
-        ${roomLabel(roomTypes?.[id])}
-      </text>`;
+      html+=`
+        <text class="nodeText"
+              x="${x}"
+              y="${y}">
+          ${roomLabel(roomTypes?.[id])}
+        </text>
+      `;
     }
   });
+
+  html+=`
+    <text class="bossLabel"
+          x="${nodes.midBoss[0]}"
+          y="${nodes.midBoss[1]}">
+      中級BOSS
+    </text>
+
+    <text class="bossLabel"
+          x="${nodes.finalBoss[0]}"
+          y="${nodes.finalBoss[1]}">
+      最終BOSS
+    </text>
+  `;
 
   if(nodes[current]){
+
     const [x,y]=nodes[current];
-    html+=`<text class="currentStar" x="${x}" y="${y-7}">★</text>`;
+
+    html+=`
+      <text class="currentStar"
+            x="${x}"
+            y="${y}">
+        ★
+      </text>
+    `;
   }
 
   svg.innerHTML=html;
 }
 
-function showReward(text){
-  const box=document.getElementById("dropReward");
-  box.innerText=text;
+function showCenterPopup(text){
+
+  const box=document.getElementById("centerPopup");
+
+  if(!text){
+
+    box.style.display="none";
+
+    return;
+  }
+
+  box.innerHTML=text;
+
   box.style.display="block";
 }
 
-function hideReward(){
-  document.getElementById("dropReward").style.display="none";
+function hideCenterPopup(){
+
+  document.getElementById("centerPopup").style.display="none";
 }
 
 db.ref().on("value",snap=>{
+
   const data=snap.val()||{};
+
   const players=data.players||{};
   const enemy=data.enemy||{};
-  const roomInfo=data.roomInfo||{mode:"room",content:"請選擇方向，進入8號時間迷宮。"};
-  const map=data.map||{currentNode:"start",roomTypes:{}};
+
+  const roomInfo=data.roomInfo||{
+    mode:"room",
+    content:"請選擇方向，進入8號時間迷宮。"
+  };
+
+  const map=data.map||{
+    currentNode:"start",
+    roomTypes:{}
+  };
+const visual=data.visualImage || "map";
+
+const mapImage=document.getElementById("mapImage");
+
+mapImage.src =
+  "https://kissshot1385.github.io/yume.game.io/" +
+  (visualImages[visual] || "map.png");
+
+if(visual==="map"){
+
+  mapImage.classList.remove("fullCover");
+
+}else{
+
+  mapImage.classList.add("fullCover");
+}
+
+
+  window.currentInfoMerchant=data.infoMerchant;
 
   document.getElementById("players").innerHTML=
-    renderPlayer(players.player1,"玩家1","player1")+
-    renderPlayer(players.player2,"玩家2","player2");
+    renderPlayer(
+      players.player1,
+      "玩家1",
+      "player1",
+      data.infoMerchant
+    )+
+    renderPlayer(
+      players.player2,
+      "玩家2",
+      "player2",
+      data.infoMerchant
+    );
 
-  document.getElementById("infoTitle").innerText=
-    roomInfo.mode==="enemy"?"敵人資料":"房間內容";
 
   document.getElementById("infoContent").innerHTML=
-    roomInfo.mode==="enemy"?renderEnemy(enemy):renderRoom(roomInfo);
+    roomInfo.mode==="enemy"
+    ?renderEnemy(enemy)
+    :renderRoom(roomInfo);
+
+  const playerPanel=document.getElementById("playerPanel");
+  const enemyPanel=document.getElementById("enemyPanel");
+
+  playerPanel.classList.remove("turnActive");
+  enemyPanel.classList.remove("turnActive");
+
+  if(
+    data.battleTurn==="player1" ||
+    data.battleTurn==="player2"
+  ){
+    playerPanel.classList.add("turnActive");
+  }
+
+  if(data.battleTurn==="enemy"){
+    enemyPanel.classList.add("turnActive");
+  }
 
   ["player1","player2"].forEach(k=>{
+
     const cur=players[k];
 
     if(cur&&cur.job){
+
       const now=Number(cur.hp||0);
+
       const prev=lastPlayerHp[k];
 
       if(prev!==null){
+
         const diff=now-Number(prev);
 
-        if(diff<0){
-          flash(k+"BarBox","flash-damage");
-          showFloatNumber(k+"BarBox",diff);
-        }
+        if(diff!==0){
 
-        if(diff>0){
-          flash(k+"BarBox","flash-heal");
-          showFloatNumber(k+"BarBox",diff);
+          if(diff<0){
+
+            flash(k+"BarBox","flash-damage");
+
+            setTimeout(()=>{
+              showFloatNumber(k+"BarBox",diff);
+            },10);
+          }
+
+          if(diff>0){
+
+            flash(k+"BarBox","flash-heal");
+
+            setTimeout(()=>{
+              showFloatNumber(k+"BarBox",diff);
+            },10);
+          }
         }
       }
 
@@ -514,37 +1013,61 @@ db.ref().on("value",snap=>{
   const enemyHp=Number(enemy.hp||0);
 
   if(lastEnemyHp!==null){
+
     const diff=enemyHp-Number(lastEnemyHp);
 
     if(diff<0){
+
       flash("enemyBarBox","flash-damage");
-      showFloatNumber("enemyBarBox",diff);
+
+      setTimeout(()=>{
+        showFloatNumber("enemyBarBox",diff);
+      },10);
     }
 
     if(diff>0){
+
       flash("enemyBarBox","flash-heal");
-      showFloatNumber("enemyBarBox",diff);
+
+      setTimeout(()=>{
+        showFloatNumber("enemyBarBox",diff);
+      },10);
     }
   }
 
-  if(
-    lastEnemyHp!==null &&
-    Number(lastEnemyHp)>0 &&
-    enemyHp===0 &&
-    enemy.name &&
-    enemy.name!=="未出現"
-  ){
-    showReward("🎁 掉落獎勵："+(enemy.drop||"未知獎勵"));
-  }
+  if(data.eventResult){
 
-  if((lastEnemyHp===0&&enemyHp>0)||!enemy.name||enemy.name==="未出現"){
-    hideReward();
-  }
+  showCenterPopup(
+    "✨事件結果✨<br><br>"+data.eventResult
+  );
+
+}
+else if(data.rewardResult){
+
+  showCenterPopup(
+    "🎁掉落獎勵🎁<br><br>"+data.rewardResult
+  );
+
+}
+else{
+
+  hideCenterPopup();
+}
 
   lastEnemyHp=enemyHp;
 
-  drawMap(map.currentNode||"start",map.roomTypes||{});
+  if(visual==="map"){
+  document.getElementById("mapSvg").style.display="block";
+
+  drawMap(
+    map.currentNode||"start",
+    map.roomTypes||{}
+  );
+}else{
+  document.getElementById("mapSvg").style.display="none";
+}
 });
+
 </script>
 
 </body>

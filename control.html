@@ -59,6 +59,9 @@ button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border
     <button onclick="useInterfereOnEnemy('player1')">
       敵人 -2
     </button>
+	<button onclick="addInterfere('player1')">
+  干涉+1 
+</button>
 
   </div>
 
@@ -77,6 +80,10 @@ button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border
     <button onclick="useInterfereOnEnemy('player2')">
       敵人 -2
     </button>
+
+<button onclick="addInterfere('player2')">
+  干涉+1 
+</button>
 
   </div>
 
@@ -172,6 +179,25 @@ function addPlayer(job,maxHp,hit){gameRef.child("players").once("value").then(s=
 function setPlayerAtk(player,val){gameRef.child("players/"+player+"/atk").set(val);}function addPlayerAtk(player,val){gameRef.child("players/"+player+"/atk").once("value").then(s=>gameRef.child("players/"+player+"/atk").set((Number(s.val())||0)+val));}
 function setPlayerDef(player,val){gameRef.child("players/"+player+"/def").set(val);}function addPlayerDef(player,val){gameRef.child("players/"+player+"/def").once("value").then(s=>gameRef.child("players/"+player+"/def").set((Number(s.val())||0)+val));}
 function setInterfere(player,val){gameRef.child("players/"+player+"/interfere").set(val);}
+
+function addInterfere(player){
+
+  gameRef.child("players/"+player+"/interfere")
+  .once("value")
+  .then(s=>{
+
+    const now=Number(s.val()||0)+1;
+
+    gameRef.child(
+      "players/"+player+"/interfere"
+    ).set(now);
+
+    setBattleLog(
+      (player==="player1"?"玩家1":"玩家2")
+      +" 的干涉次數 +1"
+    );
+  });
+}
 
 function useInterfereTarget(user,target){
 

@@ -20,18 +20,27 @@ body{background:#111;color:#f4e6c8;font-family:"Noto Sans TC",sans-serif;padding
   font-weight:bold;
 }
 
+.bigSection h2{font-size:48px;}
+.bigSection h3{font-size:36px;}
+.bigSection button{
+  font-size:36px;
+  padding:22px 30px;
+  border-radius:18px;
+  min-height:88px;
+}
+.bigSection{padding:30px;}
+
+
 button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border:1px solid #5a4525;padding:10px;border-radius:10px;}#battleTurn{margin-bottom:12px;font-size:22px;color:#ffd36a;}#battleLog{margin-top:12px;font-size:18px;white-space:pre-line;}
 </style>
 </head>
 <body>
 <h1>⚙️ 控制頁</h1>
 <section><h2>遊戲控制</h2><button onclick="resetGame()">重置遊戲</button></section>
-<section><h2>玩家職業</h2><button onclick="addPlayer('鍛時者',30,'6+')">鍛時者</button><button onclick="addPlayer('軌跡者',20,'5+')">軌跡者</button><button onclick="addPlayer('干涉者',20,'6+')">干涉者</button><button onclick="addPlayer('潛行者',20,'6+')">潛行者</button></section>
-<section><h2>玩家攻擊力 / 防禦力</h2><div class="row"><div class="col"><h3>玩家1</h3><button onclick="setPlayerAtk('player1',3)">攻擊=3</button><button onclick="addPlayerAtk('player1',3)">+3</button><br><button onclick="setPlayerDef('player1',0)">防禦=0</button><button onclick="addPlayerDef('player1',1)">+1</button></div><div class="col"><h3>玩家2</h3><button onclick="setPlayerAtk('player2',3)">攻擊=3</button><button onclick="addPlayerAtk('player2',3)">+3</button><br><button onclick="setPlayerDef('player2',0)">防禦=0</button><button onclick="addPlayerDef('player2',1)">+1</button></div></div></section>
+<section class="bigSection"><h2>玩家職業</h2><button onclick="addPlayer('鍛時者',30,'6+')">鍛時者</button><button onclick="addPlayer('軌跡者',20,'5+')">軌跡者</button><button onclick="addPlayer('干涉者',20,'6+')">干涉者</button><button onclick="addPlayer('潛行者',20,'6+')">潛行者</button></section>
+<section class="bigSection"><h2>玩家攻擊力 / 防禦力</h2><div class="row"><div class="col"><h3>玩家1</h3><button onclick="setPlayerAtk('player1',3)">攻擊=3</button><button onclick="addPlayerAtk('player1',3)">+3</button><br><button onclick="setPlayerDef('player1',0)">防禦=0</button><button onclick="addPlayerDef('player1',1)">+1</button></div><div class="col"><h3>玩家2</h3><button onclick="setPlayerAtk('player2',3)">攻擊=3</button><button onclick="addPlayerAtk('player2',3)">+3</button><br><button onclick="setPlayerDef('player2',0)">防禦=0</button><button onclick="addPlayerDef('player2',1)">+1</button></div></div></section>
 
-<section>
-
-<h2>干涉</h2>
+<section class="bigSection"><h2>干涉</h2>
 
 <div class="row">
 
@@ -75,9 +84,8 @@ button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border
 
 </section>
 
-<section><h2>使用中道具</h2><button onclick="useInfoMerchant()">情報商（永久顯示幸運房）</button><div class="row"><div class="col"><h3>玩家1</h3><button onclick="toggleActive('player1','weaponBoost')">強化武器</button><button onclick="useShield('player1')">時間護盾</button></div><div class="col"><h3>玩家2</h3><button onclick="toggleActive('player2','weaponBoost')">強化武器</button><button onclick="useShield('player2')">時間護盾</button></div></div></section>
-<section>
-<h2>迷宮移動</h2>
+<section class="bigSection"><h2>使用中道具</h2><button onclick="useInfoMerchant()">情報商（永久顯示幸運房）</button><div class="row"><div class="col"><h3>玩家1</h3><button onclick="toggleActive('player1','weaponBoost')">強化武器</button><button onclick="useShield('player1')">時間護盾</button></div><div class="col"><h3>玩家2</h3><button onclick="toggleActive('player2','weaponBoost')">強化武器</button><button onclick="useShield('player2')">時間護盾</button></div></div></section>
+<section class="bigSection"><h2>迷宮移動</h2>
 <button onclick="moveRoom('L')">← 左</button>
 <button onclick="moveRoom('M')">↑ 中</button>
 <button onclick="moveRoom('R')">→ 右</button>
@@ -86,8 +94,7 @@ button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border
 
 
 
-<section>
-<h2>血量控制</h2>
+<section class="bigSection"><h2>血量控制</h2>
 
 <div class="row">
 <div class="col">

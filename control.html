@@ -5,7 +5,22 @@
 <title>8號時間迷宮｜控制頁</title>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase.js"></script>
 <style>
-body{background:#111;color:#f4e6c8;font-family:"Noto Sans TC",sans-serif;padding:20px;}section{border:1px solid #8b6b3e;padding:16px;margin-bottom:16px;border-radius:14px;}h2{margin-bottom:10px;}button{font-size:18px;padding:10px 14px;margin:5px;border-radius:10px;border:1px solid #d0a45a;background:#2a2118;color:#f4e6c8;}button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border:1px solid #5a4525;padding:10px;border-radius:10px;}#battleTurn{margin-bottom:12px;font-size:22px;color:#ffd36a;}#battleLog{margin-top:12px;font-size:18px;white-space:pre-line;}
+body{background:#111;color:#f4e6c8;font-family:"Noto Sans TC",sans-serif;padding:20px;}section{border:1px solid #8b6b3e;padding:16px;margin-bottom:16px;border-radius:14px;}h2{margin-bottom:10px;}button{font-size:18px;padding:10px 14px;margin:5px;border-radius:10px;border:1px solid #d0a45a;background:#2a2118;color:#f4e6c8;}
+.diceSection button{
+
+  font-size:54px;
+
+  padding:28px 38px;
+
+  min-width:120px;
+  min-height:120px;
+
+  border-radius:22px;
+
+  font-weight:bold;
+}
+
+button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border:1px solid #5a4525;padding:10px;border-radius:10px;}#battleTurn{margin-bottom:12px;font-size:22px;color:#ffd36a;}#battleLog{margin-top:12px;font-size:18px;white-space:pre-line;}
 </style>
 </head>
 <body>
@@ -90,7 +105,9 @@ body{background:#111;color:#f4e6c8;font-family:"Noto Sans TC",sans-serif;padding
 </section>
 
 
-<section><h2>🎲 擲骰子結果</h2><div id="battleTurn">目前狀態：尚未開始戰鬥</div><button onclick="rollDice(2)">2</button><button onclick="rollDice(3)">3</button><button onclick="rollDice(4)">4</button><button onclick="rollDice(5)">5</button><button onclick="rollDice(6)">6</button><button onclick="rollDice(7)">7</button><button onclick="rollDice(8)">8</button><button onclick="rollDice(9)">9</button><button onclick="rollDice(10)">10</button><button onclick="rollDice(11)">11</button><button onclick="rollDice(12)">12</button><div id="battleLog"></div></section>
+<section class="diceSection"><h2>🎲 擲骰子結果</h2>
+
+<div id="battleTurn">目前狀態：尚未開始戰鬥</div><button onclick="rollDice(2)">2</button><button onclick="rollDice(3)">3</button><button onclick="rollDice(4)">4</button><button onclick="rollDice(5)">5</button><button onclick="rollDice(6)">6</button><button onclick="rollDice(7)">7</button><button onclick="rollDice(8)">8</button><button onclick="rollDice(9)">9</button><button onclick="rollDice(10)">10</button><button onclick="rollDice(11)">11</button><button onclick="rollDice(12)">12</button><div id="battleLog"></div></section>
 
 <section>
 <h2>事件 / 怪物完成</h2>

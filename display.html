@@ -691,16 +691,38 @@ function renderPlayer(p,label,key,infoMerchant){
 
   const percent=hpPercent(p.hp||0,p.maxHp||1);
 
-  const activeNames={
-    weaponBoost:"強化武器",
-    shield:"時間護盾"
-  };
+let activeHtml="";
 
-  let activeHtml=Object.keys(activeNames).map(k=>
-    `<div class="box ${(p.active&&p.active[k])?"":"empty"}">
-      ${activeNames[k]}
-    </div>`
-  ).join("");
+activeHtml+=`
+  <div class="box ${(p.active&&p.active.weaponBoost)?"":"empty"}">
+    強化武器
+  </div>
+`;
+
+if(Number(p.active?.shieldTurns||0)>0){
+
+  activeHtml+=`
+    <div class="box">
+      時間護盾：${p.active.shieldTurns}
+    </div>
+  `;
+
+}else if(p.active?.shieldOwned){
+
+  activeHtml+=`
+    <div class="box">
+      時間護盾：持有
+    </div>
+  `;
+
+}else{
+
+  activeHtml+=`
+    <div class="box empty">
+      時間護盾
+    </div>
+  `;
+}
 
   if(infoMerchant){
     activeHtml+=`<div class="box">情報商</div>`;

@@ -14,7 +14,7 @@ body{background:#111;color:#f4e6c8;font-family:"Noto Sans TC",sans-serif;padding
 <section><h2>玩家職業</h2><button onclick="addPlayer('鍛時者',30,'6+')">鍛時者</button><button onclick="addPlayer('軌跡者',20,'5+')">軌跡者</button><button onclick="addPlayer('干涉者',20,'6+')">干涉者</button><button onclick="addPlayer('潛行者',20,'6+')">潛行者</button></section>
 <section><h2>玩家攻擊力 / 防禦力</h2><div class="row"><div class="col"><h3>玩家1</h3><button onclick="setPlayerAtk('player1',3)">攻擊=3</button><button onclick="addPlayerAtk('player1',3)">+3</button><br><button onclick="setPlayerDef('player1',0)">防禦=0</button><button onclick="addPlayerDef('player1',1)">+1</button></div><div class="col"><h3>玩家2</h3><button onclick="setPlayerAtk('player2',3)">攻擊=3</button><button onclick="addPlayerAtk('player2',3)">+3</button><br><button onclick="setPlayerDef('player2',0)">防禦=0</button><button onclick="addPlayerDef('player2',1)">+1</button></div></div></section>
 <section><h2>干涉次數</h2><div class="row"><div class="col"><h3>玩家1</h3><button onclick="setInterfere('player1',0)">0</button><button onclick="setInterfere('player1',1)">1</button><button onclick="setInterfere('player1',2)">2</button><button onclick="setInterfere('player1',3)">3</button><button onclick="setInterfere('player1',4)">4</button><button onclick="setInterfere('player1',5)">5</button></div><div class="col"><h3>玩家2</h3><button onclick="setInterfere('player2',0)">0</button><button onclick="setInterfere('player2',1)">1</button><button onclick="setInterfere('player2',2)">2</button><button onclick="setInterfere('player2',3)">3</button><button onclick="setInterfere('player2',4)">4</button><button onclick="setInterfere('player2',5)">5</button></div></div></section>
-<section><h2>使用中道具</h2><button onclick="useInfoMerchant()">情報商（永久顯示幸運房）</button><div class="row"><div class="col"><h3>玩家1</h3><button onclick="toggleActive('player1','weaponBoost')">強化武器</button><button onclick="toggleActive('player1','shield')">時間護盾</button></div><div class="col"><h3>玩家2</h3><button onclick="toggleActive('player2','weaponBoost')">強化武器</button><button onclick="toggleActive('player2','shield')">時間護盾</button></div></div></section>
+<section><h2>使用中道具</h2><button onclick="useInfoMerchant()">情報商（永久顯示幸運房）</button><div class="row"><div class="col"><h3>玩家1</h3><button onclick="toggleActive('player1','weaponBoost')">強化武器</button><button onclick="useShield('player1')">時間護盾</button></div><div class="col"><h3>玩家2</h3><button onclick="toggleActive('player2','weaponBoost')">強化武器</button><button onclick="useShield('player2')">時間護盾</button></div></div></section>
 <section><h2>迷宮移動</h2><button onclick="moveRoom('L')">← 左</button><button onclick="moveRoom('M')">↑ 中</button><button onclick="moveRoom('R')">→ 右</button></section>
 
 <section>
@@ -61,11 +61,46 @@ firebase.initializeApp(firebaseConfig);var db=firebase.database();let battleStat
 function syncBattleTurn(){db.ref("battleTurn").set(battleState.active?battleState.phase:"none");}
 function updateBattleText(){const el=document.getElementById("battleTurn");if(!battleState.active){el.innerText="目前狀態：尚未開始戰鬥";syncBattleTurn();return;}if(battleState.phase==="player1")el.innerText="目前攻擊方：玩家1";if(battleState.phase==="player2")el.innerText="目前攻擊方：玩家2";if(battleState.phase==="enemy")el.innerText="目前攻擊方：怪物（AOE）";syncBattleTurn();}
 function setBattleLog(text){document.getElementById("battleLog").innerText=text||"";}
-function makePlayer(job,maxHp,hit){return{job:job,hp:maxHp,maxHp:maxHp,atk:3,hit:hit,def:0,interfere:job==="干涉者"?5:0,active:{weaponBoost:false,shield:false}};}
+function makePlayer(job,maxHp,hit){return{job:job,hp:maxHp,maxHp:maxHp,atk:3,hit:hit,def:0,interfere:job==="干涉者"?5:0,active:{
+  weaponBoost:false,
+  shieldOwned:false,
+  shieldTurns:0
+}};}
 function addPlayer(job,maxHp,hit){db.ref("players").once("value").then(s=>{const p=s.val()||{};if(!p.player1||!p.player1.job)db.ref("players/player1").set(makePlayer(job,maxHp,hit));else if(!p.player2||!p.player2.job)db.ref("players/player2").set(makePlayer(job,maxHp,hit));else alert("已有兩位玩家");});}
 function setPlayerAtk(player,val){db.ref("players/"+player+"/atk").set(val);}function addPlayerAtk(player,val){db.ref("players/"+player+"/atk").once("value").then(s=>db.ref("players/"+player+"/atk").set((Number(s.val())||0)+val));}
 function setPlayerDef(player,val){db.ref("players/"+player+"/def").set(val);}function addPlayerDef(player,val){db.ref("players/"+player+"/def").once("value").then(s=>db.ref("players/"+player+"/def").set((Number(s.val())||0)+val));}
-function setInterfere(player,val){db.ref("players/"+player+"/interfere").set(val);}function toggleActive(player,key){db.ref("players/"+player+"/active/"+key).once("value").then(s=>db.ref("players/"+player+"/active/"+key).set(!s.val()));}
+function setInterfere(player,val){db.ref("players/"+player+"/interfere").set(val);}
+function toggleActive(player,key){db.ref("players/"+player+"/active/"+key).once("value").then(s=>db.ref("players/"+player+"/active/"+key).set(!s.val()));}
+function useShield(player){
+
+  db.ref("players/"+player+"/active").once("value").then(s=>{
+
+    const active=s.val()||{};
+
+    if(!active.shieldOwned && Number(active.shieldTurns||0)===0){
+
+      db.ref("players/"+player+"/active/shieldOwned").set(true);
+      setBattleLog(player+" 獲得時間護盾。");
+      return;
+    }
+
+    if(active.shieldOwned && Number(active.shieldTurns||0)===0){
+
+      db.ref("players/"+player+"/active").update({
+        shieldOwned:false,
+        shieldTurns:3
+      });
+
+      setBattleLog(player+" 啟動時間護盾：3回合。");
+      return;
+    }
+
+    if(Number(active.shieldTurns||0)>0){
+      setBattleLog(player+" 的時間護盾已在生效中。");
+    }
+  });
+}
+
 function useInfoMerchant(){db.ref("infoMerchant").set(true);setBattleLog("情報商已啟用：幸運房位置永久顯示。");}
 function changeHp(path,amount){db.ref(path).once("value").then(s=>{const d=s.val();if(!d)return;const hp=Number(d.hp)||0,max=Number(d.maxHp)||0;db.ref(path+"/hp").set(Math.max(0,Math.min(max,hp+amount)));});}
 function setEnemy(name,hp,atk,hit,drop,visual){
@@ -428,7 +463,73 @@ function rollDice(value){db.ref().once("value").then(s=>{const data=s.val()||{};
 }}else log+="未命中";setBattleLog(log);}battleState.phase=alive(players.player2)?"player2":"enemy";updateBattleText();return;}if(battleState.phase==="player2"){const p=players.player2;if(alive(p)){let log=`玩家2 擲出 ${value}\n`;if(value>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&value>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);db.ref("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
   finishEnemyBattle(log, enemy);
   return;
-}}else log+="未命中";setBattleLog(log);}battleState.phase="enemy";updateBattleText();return;}if(battleState.phase==="enemy"){let log=`怪物 擲出 ${value}\n`;if(value>=hitRequired(enemy.hit)){const updates={};["player1","player2"].forEach(k=>{const p=players[k];if(!alive(p))return;let damage=Math.max(0,Number(enemy.atk)-Number(p.def||0));if(p.active?.shield)damage=0;updates["players/"+k+"/hp"]=Math.max(0,Number(p.hp)-damage);log+=`\n${k==="player1"?"玩家1":"玩家2"} 受到 ${damage} 傷害`;});db.ref().update(updates);}else log+="怪物未命中";setBattleLog(log);battleState.phase="player1";updateBattleText();}});}
+}}else log+="未命中";setBattleLog(log);}battleState.phase="enemy";updateBattleText();return;}if(battleState.phase==="enemy"){
+
+  let log=`怪物 擲出 ${value}\n`;
+
+  const updates={};
+
+  const monsterHit = value>=hitRequired(enemy.hit);
+
+  ["player1","player2"].forEach(k=>{
+
+    const p=players[k];
+
+    if(!alive(p))return;
+
+    let damage=0;
+
+    const shieldTurns=Number(p.active?.shieldTurns||0);
+
+    if(monsterHit){
+
+      damage=Math.max(
+        0,
+        Number(enemy.atk)-Number(p.def||0)
+      );
+
+      if(shieldTurns>0){
+        damage=0;
+        log+=`\n${k==="player1"?"玩家1":"玩家2"} 時間護盾生效，傷害歸0`;
+      }else{
+        log+=`\n${k==="player1"?"玩家1":"玩家2"} 受到 ${damage} 傷害`;
+      }
+
+      updates["players/"+k+"/hp"]=
+        Math.max(0,Number(p.hp)-damage);
+
+    }else{
+
+      log+=`\n${k==="player1"?"玩家1":"玩家2"} 未被命中`;
+    }
+
+    if(shieldTurns>0){
+
+      updates["players/"+k+"/active/shieldTurns"]=
+        Math.max(0,shieldTurns-1);
+    }
+  });
+
+  if(!monsterHit){
+    log+="\n怪物攻擊未命中，但時間護盾仍會消耗1回合";
+  }
+
+  db.ref().update(updates);
+
+  setBattleLog(log);
+
+  battleState.phase="player1";
+
+  updateBattleText();
+
+  return;
+}
+
+
+
+});
+}
+
 function resetGame(){
 
   battleState={

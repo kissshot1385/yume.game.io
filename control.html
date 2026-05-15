@@ -849,7 +849,7 @@ if(Number(p.active?.interfereBuff||0)>0){
 }else{
 
   log=`玩家1 擲出 ${value}\n`;
-}if(finalValue>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&value>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);gameRef.child("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
+}if(finalValue>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&finalValue>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);gameRef.child("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
   finishEnemyBattle(log, enemy);
   return;
 }}else log+="未命中";
@@ -877,7 +877,7 @@ if(alive(p)){
   }else{
 
     log=`玩家2 擲出 ${value}\n`;
-  }if(finalValue>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&value>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);gameRef.child("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
+  }if(finalValue>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&finalValue>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);gameRef.child("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
   finishEnemyBattle(log, enemy);
   return;
 }}else log+="未命中";

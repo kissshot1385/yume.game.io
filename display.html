@@ -367,7 +367,15 @@ h2{
 
   z-index:1;
   pointer-events:none;
+
+  transition:opacity .35s ease;
 }
+
+.mapImage.loading{
+  opacity:0;
+}
+
+
 
 .mapImage.fullCover{
   left:0;
@@ -640,6 +648,15 @@ const visualImages={
   rm_merchant2:"rm_merchant2.png"
 };
 
+Object.values(visualImages).forEach(file=>{
+
+  const img=new Image();
+
+  img.src=
+    "https://kissshot1385.github.io/yume.game.io/"
+    +file;
+});
+
 function hpPercent(hp,maxHp){
   return Math.max(0,Math.min(100,Number(hp)/Number(maxHp)*100));
 }
@@ -720,6 +737,15 @@ if(Number(p.active?.shieldTurns||0)>0){
   activeHtml+=`
     <div class="box empty">
       時間護盾
+    </div>
+  `;
+}
+
+if(Number(p.active?.interfereBuff||0)>0){
+
+  activeHtml+=`
+    <div class="box">
+      干涉+2
     </div>
   `;
 }
@@ -820,9 +846,16 @@ function renderEnemy(e){
       攻擊力：${e.atk??0}
     </div>
 
-    <div class="box">
-      命中：${e.hit||"-"}
-    </div>
+<div class="box">
+  命中：
+  ${e.hit||"-"}
+
+  ${
+    Number(e.interfereDebuff||0)>0
+    ?`<br>干涉-2`
+    :""
+  }
+</div>
 
   </div>`;
 }
@@ -943,9 +976,25 @@ const visual=data.visualImage || "map";
 
 const mapImage=document.getElementById("mapImage");
 
-mapImage.src =
+const nextSrc =
   "https://kissshot1385.github.io/yume.game.io/" +
   (visualImages[visual] || "map.png");
+
+if(mapImage.src!==nextSrc){
+
+  mapImage.classList.add("loading");
+
+  const temp=new Image();
+
+  temp.onload=()=>{
+
+    mapImage.src=nextSrc;
+
+    mapImage.classList.remove("loading");
+  };
+
+  temp.src=nextSrc;
+}
 
 if(visual==="map"){
 

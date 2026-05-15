@@ -61,7 +61,15 @@ body{background:#111;color:#f4e6c8;font-family:"Noto Sans TC",sans-serif;padding
 </section>
 
 <section><h2>使用中道具</h2><button onclick="useInfoMerchant()">情報商（永久顯示幸運房）</button><div class="row"><div class="col"><h3>玩家1</h3><button onclick="toggleActive('player1','weaponBoost')">強化武器</button><button onclick="useShield('player1')">時間護盾</button></div><div class="col"><h3>玩家2</h3><button onclick="toggleActive('player2','weaponBoost')">強化武器</button><button onclick="useShield('player2')">時間護盾</button></div></div></section>
-<section><h2>迷宮移動</h2><button onclick="moveRoom('L')">← 左</button><button onclick="moveRoom('M')">↑ 中</button><button onclick="moveRoom('R')">→ 右</button></section>
+<section>
+<h2>迷宮移動</h2>
+<button onclick="moveRoom('L')">← 左</button>
+<button onclick="moveRoom('M')">↑ 中</button>
+<button onclick="moveRoom('R')">→ 右</button>
+<button onclick="goBackRoom()">↩ 返回上一房</button>
+</section>
+
+
 
 <section>
 <h2>血量控制</h2>
@@ -103,8 +111,20 @@ var firebaseConfig = {
   measurementId: "G-BD8GMZR2B5"
 };
 
-firebase.initializeApp(firebaseConfig);var db=firebase.database();let battleState={active:false,phase:"player1"};
-function syncBattleTurn(){db.ref("battleTurn").set(battleState.active?battleState.phase:"none");}
+
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
+
+var db=firebase.database();
+const urlParams=new URLSearchParams(window.location.search);
+const GAME_ID=urlParams.get("game") || "default";
+const gameRef=db.ref("games/"+GAME_ID);
+
+
+
+let battleState={active:false,phase:"player1"};
+function syncBattleTurn(){gameRef.child("battleTurn").set(battleState.active?battleState.phase:"none");}
 function updateBattleText(){const el=document.getElementById("battleTurn");if(!battleState.active){el.innerText="目前狀態：尚未開始戰鬥";syncBattleTurn();return;}if(battleState.phase==="player1")el.innerText="目前攻擊方：玩家1";if(battleState.phase==="player2")el.innerText="目前攻擊方：玩家2";if(battleState.phase==="enemy")el.innerText="目前攻擊方：怪物（AOE）";syncBattleTurn();}
 function setBattleLog(text){document.getElementById("battleLog").innerText=text||"";}
 function makePlayer(job,maxHp,hit){
@@ -124,14 +144,14 @@ function makePlayer(job,maxHp,hit){
     }
   };
 }
-function addPlayer(job,maxHp,hit){db.ref("players").once("value").then(s=>{const p=s.val()||{};if(!p.player1||!p.player1.job)db.ref("players/player1").set(makePlayer(job,maxHp,hit));else if(!p.player2||!p.player2.job)db.ref("players/player2").set(makePlayer(job,maxHp,hit));else alert("已有兩位玩家");});}
-function setPlayerAtk(player,val){db.ref("players/"+player+"/atk").set(val);}function addPlayerAtk(player,val){db.ref("players/"+player+"/atk").once("value").then(s=>db.ref("players/"+player+"/atk").set((Number(s.val())||0)+val));}
-function setPlayerDef(player,val){db.ref("players/"+player+"/def").set(val);}function addPlayerDef(player,val){db.ref("players/"+player+"/def").once("value").then(s=>db.ref("players/"+player+"/def").set((Number(s.val())||0)+val));}
-function setInterfere(player,val){db.ref("players/"+player+"/interfere").set(val);}
+function addPlayer(job,maxHp,hit){gameRef.child("players").once("value").then(s=>{const p=s.val()||{};if(!p.player1||!p.player1.job)gameRef.child("players/player1").set(makePlayer(job,maxHp,hit));else if(!p.player2||!p.player2.job)gameRef.child("players/player2").set(makePlayer(job,maxHp,hit));else alert("已有兩位玩家");});}
+function setPlayerAtk(player,val){gameRef.child("players/"+player+"/atk").set(val);}function addPlayerAtk(player,val){gameRef.child("players/"+player+"/atk").once("value").then(s=>gameRef.child("players/"+player+"/atk").set((Number(s.val())||0)+val));}
+function setPlayerDef(player,val){gameRef.child("players/"+player+"/def").set(val);}function addPlayerDef(player,val){gameRef.child("players/"+player+"/def").once("value").then(s=>gameRef.child("players/"+player+"/def").set((Number(s.val())||0)+val));}
+function setInterfere(player,val){gameRef.child("players/"+player+"/interfere").set(val);}
 
 function useInterfereTarget(user,target){
 
-  db.ref().once("value").then(s=>{
+  gameRef.once("value").then(s=>{
 
     const data=s.val()||{};
 
@@ -149,7 +169,7 @@ function useInterfereTarget(user,target){
       return;
     }
 
-    db.ref().update({
+    gameRef.update({
 
       ["players/"+user+"/interfere"]:
         Number(p.interfere)-1,
@@ -178,7 +198,7 @@ function useInterfereTarget(user,target){
 }
 function useInterfereOnEnemy(player){
 
-  db.ref().once("value").then(s=>{
+  gameRef.once("value").then(s=>{
 
     const data=s.val()||{};
 
@@ -206,7 +226,7 @@ function useInterfereOnEnemy(player){
       return;
     }
 
-    db.ref().update({
+    gameRef.update({
       ["players/"+player+"/interfere"]:Number(p.interfere)-1,
       "enemy/interfereDebuff":2
     });
@@ -217,23 +237,23 @@ function useInterfereOnEnemy(player){
     );
   });
 }
-function toggleActive(player,key){db.ref("players/"+player+"/active/"+key).once("value").then(s=>db.ref("players/"+player+"/active/"+key).set(!s.val()));}
+function toggleActive(player,key){gameRef.child("players/"+player+"/active/"+key).once("value").then(s=>gameRef.child("players/"+player+"/active/"+key).set(!s.val()));}
 function useShield(player){
 
-  db.ref("players/"+player+"/active").once("value").then(s=>{
+  gameRef.child("players/"+player+"/active").once("value").then(s=>{
 
     const active=s.val()||{};
 
     if(!active.shieldOwned && Number(active.shieldTurns||0)===0){
 
-      db.ref("players/"+player+"/active/shieldOwned").set(true);
+      gameRef.child("players/"+player+"/active/shieldOwned").set(true);
       setBattleLog(player+" 獲得時間護盾。");
       return;
     }
 
     if(active.shieldOwned && Number(active.shieldTurns||0)===0){
 
-      db.ref("players/"+player+"/active").update({
+      gameRef.child("players/"+player+"/active").update({
         shieldOwned:false,
         shieldTurns:3
       });
@@ -248,10 +268,10 @@ function useShield(player){
   });
 }
 
-function useInfoMerchant(){db.ref("infoMerchant").set(true);setBattleLog("情報商已啟用：幸運房位置永久顯示。");}
-function changeHp(path,amount){db.ref(path).once("value").then(s=>{const d=s.val();if(!d)return;const hp=Number(d.hp)||0,max=Number(d.maxHp)||0;db.ref(path+"/hp").set(Math.max(0,Math.min(max,hp+amount)));});}
+function useInfoMerchant(){gameRef.child("infoMerchant").set(true);setBattleLog("情報商已啟用：幸運房位置永久顯示。");}
+function changeHp(path,amount){gameRef.child(path).once("value").then(s=>{const d=s.val();if(!d)return;const hp=Number(d.hp)||0,max=Number(d.maxHp)||0;gameRef.child(path+"/hp").set(Math.max(0,Math.min(max,hp+amount)));});}
 function setEnemy(name,hp,atk,hit,drop,visual){
-  db.ref("enemy").set({
+  gameRef.child("enemy").set({
     name:name,
     hp:hp,
     maxHp:hp,
@@ -267,19 +287,30 @@ function setEnemy(name,hp,atk,hit,drop,visual){
   setVisualImage(visual || "map");
 }
 function setVisualImage(name){
-  db.ref("visualImage").set(name);
+  gameRef.child("visualImage").set(name);
 }
 
-function clearEnemy(){db.ref("enemy").set({name:"未出現",hp:0,maxHp:0,atk:0,hit:"-",drop:""});}
+function clearEnemy(){
+
+  gameRef.child("enemy").set({
+    name:"未出現",
+    hp:0,
+    maxHp:0,
+    atk:0,
+    hit:"-",
+    drop:"",
+    interfereDebuff:0
+  });
+}
 function randomPick(arr){return arr[Math.floor(Math.random()*arr.length)];}function shuffle(arr){return arr.sort(()=>Math.random()-0.5);}
 function generateRoomTypes(){const roomTypes={};const a=shuffle(["monster","monster","monster","monster","monster","question","question","question","luck"]);for(let i=1;i<=9;i++)roomTypes["A"+i]=a[i-1];const b=shuffle(["monster","monster","monster","monster","monster","monster","monster","question","question","question","question","luck"]);for(let i=1;i<=12;i++)roomTypes["B"+i]=b[i-1];return roomTypes;}
 const moveMap={start:{L:"A1",M:"A2",R:"A3"},A1:{L:"A4",R:"A5"},A2:{L:"A4",M:"A5",R:"A6"},A3:{L:"A5",R:"A6"},A4:{L:"A7",R:"A8"},A5:{L:"A7",M:"A8",R:"A9"},A6:{L:"A8",R:"A9"},A7:{M:"midBoss"},A8:{M:"midBoss"},A9:{M:"midBoss"},midBoss:{L:"B1",M:"B2",R:"B3"},B1:{L:"B4",R:"B5"},B2:{L:"B6",R:"B7"},B3:{L:"B8",R:"B9"},B4:{M:"B10"},B5:{L:"B10",R:"B11"},B6:{L:"B10",R:"B11"},B7:{L:"B11",R:"B12"},B8:{L:"B11",R:"B12"},B9:{M:"B12"},B10:{M:"finalBoss"},B11:{M:"finalBoss"},B12:{M:"finalBoss"}};
 function moveRoom(dir){
 
-  db.ref("eventResult").set("");
-  db.ref("rewardResult").set("");
+  gameRef.child("eventResult").set("");
+  gameRef.child("rewardResult").set("");
 
-  db.ref("map/currentNode").once("value").then(s=>{
+  gameRef.child("map/currentNode").once("value").then(s=>{
 
     const current=s.val()||"start";
     const next=moveMap[current]?.[dir];
@@ -288,15 +319,39 @@ function moveRoom(dir){
       alert("這方向不能前進");
       return;
     }
-
-    db.ref("map/currentNode").set(next);
+	
+	gameRef.child("previousNode").set(current);
+    gameRef.child("map/currentNode").set(next);
     triggerRoom(next);
+  });
+}
+
+function goBackRoom(){
+
+  gameRef.once("value").then(s=>{
+
+    const data=s.val()||{};
+
+    const current=data.map?.currentNode || "start";
+    const prev=data.previousNode;
+
+    if(!prev){
+      setBattleLog("沒有可返回的位置。");
+      return;
+    }
+
+    gameRef.child("previousNode").set(current);
+    gameRef.child("map/currentNode").set(prev);
+
+    triggerRoom(prev);
+
+    setBattleLog("返回上一房："+prev);
   });
 }
 
 function clearResultPopup(){
 
-  db.ref().update({
+  gameRef.update({
 
     eventResult:"",
     rewardResult:"",
@@ -307,85 +362,73 @@ function clearResultPopup(){
   setBattleLog("事件 / 怪物獎勵提示已關閉。");
 }
 
-function setEventRoom(type,content){clearEnemy();battleState.active=false;updateBattleText();db.ref().update({roomInfo:{mode:"room",content:content},eventState:{active:true,type:type},eventResult:"",battleTurn:"none"});setBattleLog("事件開始：請按下擲骰子結果。");}
+function setEventRoom(type,content){clearEnemy();battleState.active=false;updateBattleText();gameRef.update({roomInfo:{mode:"room",content:content},eventState:{active:true,type:type},eventResult:"",battleTurn:"none"});setBattleLog("事件開始：請按下擲骰子結果。");}
 function triggerRoom(node){
 
-  if(node==="midBoss"){
+  gameRef.child("roomMemory/"+node).once("value").then(ms=>{
 
-    db.ref("eventResult").set("");
+    const memory=ms.val();
 
-    setEnemy(
-      "星環觀測者",
-      25,
-      5,
-      "7+",
-      "160金、回復藥 x1",
-      "boss1"
-    );
+    if(memory){
 
-    db.ref("roomInfo").set({
-      mode:"enemy",
-      content:""
-    });
+      if(memory.kind==="enemy"){
 
-    startBattle();
+        gameRef.child("enemy").set(memory.enemy);
 
-    return;
-  }
+        gameRef.child("roomInfo").set({
+          mode:"enemy",
+          content:""
+        });
 
-  if(node==="finalBoss"){
+        setVisualImage(memory.visualImage||"map");
 
-    db.ref("eventResult").set("");
+        startBattle();
 
-    setEnemy(
-      "時序裁定者",
-      40,
-      5,
-      "7+",
-      "最終故事",
-      "boss2"
-    );
-
-    db.ref("roomInfo").set({
-      mode:"enemy",
-      content:""
-    });
-
-    startBattle();
-
-    return;
-  }
-
-  db.ref("map/roomTypes/"+node).once("value").then(s=>{
-
-    const type=s.val();
-
-    if(type==="monster"){
-
-      db.ref("eventResult").set("");
-
-      if(node.startsWith("A")){
-
-        randomPick([
-
-          ()=>setEnemy("齒輪兵",6,2,"6+","40金","monster_a1"),
-          ()=>setEnemy("齒輪巡狼",10,3,"7+","60金","monster_b1"),
-          ()=>setEnemy("齒液獸",14,4,"8+","80金","monster_c1")
-
-        ])();
-
-      }else{
-
-        randomPick([
-
-          ()=>setEnemy("齒輪騎士",8,3,"6+","60金","monster_a2"),
-          ()=>setEnemy("狂化齒狼",12,4,"7+","80金","monster_b2"),
-          ()=>setEnemy("喰鐵齒液獸",16,5,"8+","100金","monster_c2")
-
-        ])();
+        return;
       }
 
-      db.ref("roomInfo").set({
+      if(memory.kind==="event"){
+
+        clearEnemy();
+
+        battleState.active=false;
+        updateBattleText();
+
+        gameRef.child("roomInfo").set(memory.roomInfo);
+
+        gameRef.child("eventState").set(memory.eventState);
+
+        setVisualImage(memory.visualImage||"map");
+
+        return;
+      }
+    }
+
+    if(node==="midBoss"){
+
+      gameRef.child("eventResult").set("");
+
+      const enemy={
+        name:"星環觀測者",
+        hp:25,
+        maxHp:25,
+        atk:5,
+        hit:"7+",
+        drop:"160金、回復藥 x1",
+        interfereDebuff:0
+      };
+
+      gameRef.child("enemy").set(enemy);
+
+      gameRef.child("roomMemory/"+node).set({
+        kind:"enemy",
+        enemy:enemy,
+        visualImage:"boss1"
+      });
+
+      setVisualImage("boss1");
+
+      gameRef.child("roomInfo").set({
         mode:"enemy",
         content:""
       });
@@ -395,19 +438,122 @@ function triggerRoom(node){
       return;
     }
 
-    clearEnemy();
+    if(node==="finalBoss"){
 
-    battleState.active=false;
+      gameRef.child("eventResult").set("");
 
-    updateBattleText();
+      const enemy={
+        name:"時序裁定者",
+        hp:40,
+        maxHp:40,
+        atk:5,
+        hit:"7+",
+        drop:"最終故事",
+        interfereDebuff:0
+      };
 
-    if(type==="luck"){
+      gameRef.child("enemy").set(enemy);
 
-      setVisualImage("luckrm");
+      gameRef.child("roomMemory/"+node).set({
+        kind:"enemy",
+        enemy:enemy,
+        visualImage:"boss2"
+      });
 
-      db.ref("roomInfo").set({
-        mode:"room",
-        content:`✨【幸運房】
+      setVisualImage("boss2");
+
+      gameRef.child("roomInfo").set({
+        mode:"enemy",
+        content:""
+      });
+
+      startBattle();
+
+      return;
+    }
+
+    gameRef.child("map/roomTypes/"+node).once("value").then(s=>{
+
+      const type=s.val();
+
+      if(type==="monster"){
+
+        gameRef.child("eventResult").set("");
+
+        let enemy;
+        let visualImage;
+
+        if(node.startsWith("A")){
+
+          const picked=randomPick([
+            {
+              enemy:{name:"齒輪兵",hp:6,maxHp:6,atk:2,hit:"6+",drop:"40金",interfereDebuff:0},
+              visual:"monster_a1"
+            },
+            {
+              enemy:{name:"齒輪巡狼",hp:10,maxHp:10,atk:3,hit:"7+",drop:"60金",interfereDebuff:0},
+              visual:"monster_b1"
+            },
+            {
+              enemy:{name:"齒液獸",hp:14,maxHp:14,atk:4,hit:"8+",drop:"80金",interfereDebuff:0},
+              visual:"monster_c1"
+            }
+          ]);
+
+          enemy=picked.enemy;
+          visualImage=picked.visual;
+
+        }else{
+
+          const picked=randomPick([
+            {
+              enemy:{name:"齒輪騎士",hp:8,maxHp:8,atk:3,hit:"6+",drop:"60金",interfereDebuff:0},
+              visual:"monster_a2"
+            },
+            {
+              enemy:{name:"狂化齒狼",hp:12,maxHp:12,atk:4,hit:"7+",drop:"80金",interfereDebuff:0},
+              visual:"monster_b2"
+            },
+            {
+              enemy:{name:"喰鐵齒液獸",hp:16,maxHp:16,atk:5,hit:"8+",drop:"100金",interfereDebuff:0},
+              visual:"monster_c2"
+            }
+          ]);
+
+          enemy=picked.enemy;
+          visualImage=picked.visual;
+        }
+
+        gameRef.child("enemy").set(enemy);
+
+        gameRef.child("roomMemory/"+node).set({
+          kind:"enemy",
+          enemy:enemy,
+          visualImage:visualImage
+        });
+
+        setVisualImage(visualImage);
+
+        gameRef.child("roomInfo").set({
+          mode:"enemy",
+          content:""
+        });
+
+        startBattle();
+
+        return;
+      }
+
+      clearEnemy();
+
+      battleState.active=false;
+      updateBattleText();
+
+      if(type==="luck"){
+
+        const roomInfo={
+          mode:"room",
+          content:`✨【幸運房】
 ━━━━━━━━━━━━
 ❌ 失敗｜2～5
 無事發生
@@ -417,20 +563,32 @@ function triggerRoom(node){
 
 🟢 大成功｜11～12
 💰 200金、💊 高級回復藥 ×1`
-      });
+        };
 
-      db.ref("eventState").set({
-        active:true,
-        type:"luck"
-      });
+        const eventState={
+          active:true,
+          type:"luck"
+        };
 
-      return;
-    }
+        gameRef.child("roomInfo").set(roomInfo);
+        gameRef.child("eventState").set(eventState);
+        setVisualImage("luckrm");
 
-    const event=randomPick([
-      {
-        type:"chest",
-        text:`📦【寶箱房】
+        gameRef.child("roomMemory/"+node).set({
+          kind:"event",
+          roomInfo:roomInfo,
+          eventState:eventState,
+          visualImage:"luckrm"
+        });
+
+        return;
+      }
+
+      const event=randomPick([
+        {
+          type:"chest",
+          visual:"rm_Chest",
+          text:`📦【寶箱房】
 ━━━━━━━━━━━━
 ❌ 失敗｜2～5
 無法開啟 + 輕微扣血：2HP
@@ -440,11 +598,11 @@ function triggerRoom(node){
 
 🟢 大成功｜11～12
 💰 160金、💊 高級回復藥 ×1`
-      },
-
-      {
-        type:"trap",
-        text:`⚠️【陷阱房】
+        },
+        {
+          type:"trap",
+          visual:"rm_trap",
+          text:`⚠️【陷阱房】
 ━━━━━━━━━━━━
 ❌ 大失敗｜2～5
 扣 6HP、失去1個道具
@@ -454,11 +612,11 @@ function triggerRoom(node){
 
 🟢 大成功｜11～12
 💰 +20金`
-      },
-
-      {
-        type:"wanderer",
-        text:`🌀【時空流浪者】
+        },
+        {
+          type:"wanderer",
+          visual:"wanderer",
+          text:`🌀【時空流浪者】
 ━━━━━━━━━━━━
 特殊道具：
 
@@ -467,44 +625,73 @@ function triggerRoom(node){
 🛡️ 時間護盾：免傷3回合
 
 🔁 命運逆轉：指定骰子一次`
+        }
+      ]);
+
+      let visualImage=event.visual;
+
+      if(event.type==="wanderer"){
+
+        gameRef.child("merchantCount").once("value").then(cs=>{
+
+          const count=Number(cs.val()||0)+1;
+
+          gameRef.child("merchantCount").set(count);
+
+          visualImage=count>=2 ? "rm_merchant2" : "rm_merchant";
+
+          const roomInfo={
+            mode:"room",
+            content:event.text
+          };
+
+          const eventState={
+            active:true,
+            type:event.type
+          };
+
+          gameRef.child("roomInfo").set(roomInfo);
+          gameRef.child("eventState").set(eventState);
+          setVisualImage(visualImage);
+
+          gameRef.child("roomMemory/"+node).set({
+            kind:"event",
+            roomInfo:roomInfo,
+            eventState:eventState,
+            visualImage:visualImage
+          });
+        });
+
+        return;
       }
-    ]);
 
-    if(event.type==="chest"){
-      setVisualImage("rm_Chest");
-    }
+      const roomInfo={
+        mode:"room",
+        content:event.text
+      };
 
-    if(event.type==="trap"){
-      setVisualImage("rm_trap");
-    }
+      const eventState={
+        active:true,
+        type:event.type
+      };
 
-    if(event.type==="wanderer"){
+      gameRef.child("roomInfo").set(roomInfo);
+      gameRef.child("eventState").set(eventState);
+      setVisualImage(visualImage);
 
-      db.ref("merchantCount").once("value").then(ms=>{
-
-        const count=Number(ms.val()||0)+1;
-
-        db.ref("merchantCount").set(count);
-
-        setVisualImage(count>=2 ? "rm_merchant2" : "rm_merchant");
+      gameRef.child("roomMemory/"+node).set({
+        kind:"event",
+        roomInfo:roomInfo,
+        eventState:eventState,
+        visualImage:visualImage
       });
-    }
-
-    db.ref("roomInfo").set({
-      mode:"room",
-      content:event.text
-    });
-
-    db.ref("eventState").set({
-      active:true,
-      type:event.type
     });
   });
 }
 function startBattle(){
   battleState.active=true;
   battleState.phase="player1";
-  db.ref("eventState").set(null);
+  gameRef.child("eventState").set(null);
   updateBattleText();
   setBattleLog("戰鬥開始！");
 }
@@ -517,8 +704,8 @@ function endBattle(text){
 
 
 function finishEnemyBattle(log, enemy){
-  db.ref("rewardResult").set(enemy.drop || "未知獎勵");
-  db.ref("visualImage").set("map");
+  gameRef.child("rewardResult").set(enemy.drop || "未知獎勵");
+  gameRef.child("visualImage").set("map");
   endBattle(log + "\n怪物被擊敗！");
 }
 
@@ -590,7 +777,7 @@ function resolveEvent(value,type,players){
 
   updates.eventResult=result;
 
-  db.ref().update(updates);
+  gameRef.update(updates);
 
   setBattleLog(
     "事件結果：\n"+
@@ -598,7 +785,7 @@ function resolveEvent(value,type,players){
     `\n(最終骰值：${finalValue})`
   );
 }
-function rollDice(value){db.ref().once("value").then(s=>{const data=s.val()||{};const enemy=data.enemy||{};const players=data.players||{};if(data.eventState&&data.eventState.active){resolveEvent(value,data.eventState.type,players);return;}if(!battleState.active)return;if(battleState.phase==="player1"){const p=players.player1;if(alive(p)){let finalValue=value;
+function rollDice(value){gameRef.once("value").then(s=>{const data=s.val()||{};const enemy=data.enemy||{};const players=data.players||{};if(data.eventState&&data.eventState.active){resolveEvent(value,data.eventState.type,players);return;}if(!battleState.active)return;if(battleState.phase==="player1"){const p=players.player1;if(alive(p)){let finalValue=value;
 let log="";
 
 if(Number(p.active?.interfereBuff||0)>0){
@@ -612,13 +799,13 @@ if(Number(p.active?.interfereBuff||0)>0){
 }else{
 
   log=`玩家1 擲出 ${value}\n`;
-}if(finalValue>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&value>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);db.ref("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
+}if(finalValue>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&value>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);gameRef.child("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
   finishEnemyBattle(log, enemy);
   return;
 }}else log+="未命中";
 if(Number(p.active?.interfereBuff||0)>0){
 
-  db.ref(
+  gameRef.child(
     "players/player1/active/interfereBuff"
   ).set(0);
 }
@@ -640,13 +827,13 @@ if(alive(p)){
   }else{
 
     log=`玩家2 擲出 ${value}\n`;
-  }if(finalValue>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&value>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);db.ref("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
+  }if(finalValue>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&value>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);gameRef.child("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
   finishEnemyBattle(log, enemy);
   return;
 }}else log+="未命中";
 if(Number(p.active?.interfereBuff||0)>0){
 
-  db.ref(
+  gameRef.child(
     "players/player2/active/interfereBuff"
   ).set(0);
 }
@@ -718,7 +905,7 @@ const monsterHit =
   updates["enemy/interfereDebuff"]=0;
 }
 
-  db.ref().update(updates);
+  gameRef.update(updates);
 
   setBattleLog(log);
 
@@ -743,7 +930,7 @@ function resetGame(){
 
   updateBattleText();
 
-  db.ref().set({
+  gameRef.set({
 
     players:{},
 
@@ -761,6 +948,9 @@ function resetGame(){
       currentNode:"start",
       roomTypes:generateRoomTypes()
     },
+	
+	previousNode:null,
+	roomMemory:{},
 
     roomInfo:{
       mode:"room",
@@ -781,6 +971,8 @@ function resetGame(){
     infoMerchant:false,
 
     battleTurn:"none"
+	
+	
   });
 }
 updateBattleText();

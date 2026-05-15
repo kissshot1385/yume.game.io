@@ -560,9 +560,15 @@ var firebaseConfig = {
 
 };
 
-firebase.initializeApp(firebaseConfig);
+if (!firebase.apps.length) {
+  firebase.initializeApp(firebaseConfig);
+}
 
 var db=firebase.database();
+const urlParams=new URLSearchParams(window.location.search);
+const GAME_ID=urlParams.get("game") || "default";
+const gameRef=db.ref("games/"+GAME_ID);
+
 
 let lastEnemyHp=null;
 let lastPlayerHp={player1:null,player2:null};
@@ -956,7 +962,7 @@ function hideCenterPopup(){
   document.getElementById("centerPopup").style.display="none";
 }
 
-db.ref().on("value",snap=>{
+gameRef.on("value",snap=>{
 
   const data=snap.val()||{};
 

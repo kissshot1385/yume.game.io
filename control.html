@@ -290,6 +290,11 @@ function useInterfereOnEnemy(player){
 function toggleActive(player,key){gameRef.child("players/"+player+"/active/"+key).once("value").then(s=>gameRef.child("players/"+player+"/active/"+key).set(!s.val()));}
 function useShield(player){
 
+  const userName=
+    player==="player1"
+    ?"冒險者1"
+    :"冒險者2";
+
   gameRef.child("players/"+player+"/active").once("value").then(s=>{
 
     const active=s.val()||{};
@@ -370,6 +375,7 @@ function moveRoom(dir){
       return;
     }
 	
+	
 	gameRef.child("previousNode").set(current);
     gameRef.child("map/currentNode").set(next);
     triggerRoom(next);
@@ -390,7 +396,13 @@ function goBackRoom(){
       return;
     }
 
+    gameRef.update({
+      eventResult:"",
+      rewardResult:""
+    });
+
     gameRef.child("previousNode").set(current);
+
     gameRef.child("map/currentNode").set(prev);
 
     triggerRoom(prev);

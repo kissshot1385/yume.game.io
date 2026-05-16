@@ -38,7 +38,7 @@ button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border
 <h1>⚙️ 控制頁</h1>
 <section><h2>遊戲控制</h2><button onclick="resetGame()">重置遊戲</button></section>
 <section class="bigSection"><h2>玩家職業</h2><button onclick="addPlayer('鍛時者',30,'6+')">鍛時者</button><button onclick="addPlayer('軌跡者',20,'5+')">軌跡者</button><button onclick="addPlayer('干涉者',20,'6+')">干涉者</button><button onclick="addPlayer('潛行者',20,'6+')">潛行者</button></section>
-<section class="bigSection"><h2>玩家攻擊力 / 防禦力</h2><div class="row"><div class="col"><h3>玩家1</h3><button onclick="setPlayerAtk('player1',3)">攻擊=3</button><button onclick="addPlayerAtk('player1',3)">+3</button><br><button onclick="setPlayerDef('player1',0)">防禦=0</button><button onclick="addPlayerDef('player1',1)">+1</button></div><div class="col"><h3>玩家2</h3><button onclick="setPlayerAtk('player2',3)">攻擊=3</button><button onclick="addPlayerAtk('player2',3)">+3</button><br><button onclick="setPlayerDef('player2',0)">防禦=0</button><button onclick="addPlayerDef('player2',1)">+1</button></div></div></section>
+<section class="bigSection"><h2>玩家攻擊力 / 防禦力</h2><div class="row"><div class="col"><h3>冒險者1</h3><button onclick="setPlayerAtk('player1',3)">攻擊=3</button><button onclick="addPlayerAtk('player1',3)">+3</button><br><button onclick="setPlayerDef('player1',0)">防禦=0</button><button onclick="addPlayerDef('player1',1)">+1</button></div><div class="col"><h3>冒險者2</h3><button onclick="setPlayerAtk('player2',3)">攻擊=3</button><button onclick="addPlayerAtk('player2',3)">+3</button><br><button onclick="setPlayerDef('player2',0)">防禦=0</button><button onclick="addPlayerDef('player2',1)">+1</button></div></div></section>
 
 <section class="bigSection"><h2>干涉</h2>
 
@@ -46,14 +46,14 @@ button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border
 
   <div class="col">
 
-    <h3>玩家1 使用</h3>
+    <h3>冒險者1 使用</h3>
 
     <button onclick="useInterfereTarget('player1','player1')">
-      玩家1 +2
+      冒險者1 +2
     </button>
 
     <button onclick="useInterfereTarget('player1','player2')">
-      玩家2 +2
+      冒險者2 +2
     </button>
 
     <button onclick="useInterfereOnEnemy('player1')">
@@ -67,14 +67,14 @@ button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border
 
   <div class="col">
 
-    <h3>玩家2 使用</h3>
+    <h3>冒險者2 使用</h3>
 
     <button onclick="useInterfereTarget('player2','player1')">
-      玩家1 +2
+      冒險者1 +2
     </button>
 
     <button onclick="useInterfereTarget('player2','player2')">
-      玩家2 +2
+      冒險者2 +2
     </button>
 
     <button onclick="useInterfereOnEnemy('player2')">
@@ -91,7 +91,7 @@ button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border
 
 </section>
 
-<section class="bigSection"><h2>使用中道具</h2><button onclick="useInfoMerchant()">情報商（永久顯示幸運房）</button><div class="row"><div class="col"><h3>玩家1</h3><button onclick="toggleActive('player1','weaponBoost')">強化武器</button><button onclick="useShield('player1')">時間護盾</button></div><div class="col"><h3>玩家2</h3><button onclick="toggleActive('player2','weaponBoost')">強化武器</button><button onclick="useShield('player2')">時間護盾</button></div></div></section>
+<section class="bigSection"><h2>使用中道具</h2><button onclick="useInfoMerchant()">情報商（永久顯示幸運房）</button><div class="row"><div class="col"><h3>冒險者1</h3><button onclick="toggleActive('player1','weaponBoost')">強化武器</button><button onclick="useShield('player1')">時間護盾</button></div><div class="col"><h3>冒險者2</h3><button onclick="toggleActive('player2','weaponBoost')">強化武器</button><button onclick="useShield('player2')">時間護盾</button></div></div></section>
 <section class="bigSection"><h2>迷宮移動</h2>
 <button onclick="moveRoom('L')">← 左</button>
 <button onclick="moveRoom('M')">↑ 中</button>
@@ -105,13 +105,13 @@ button:active{background:#6b4a22;}.row{display:flex;gap:20px;}.col{flex:1;border
 
 <div class="row">
 <div class="col">
-<h3>玩家1</h3>
+<h3>冒險者1</h3>
 <button onclick="changeHp('players/player1',6)">+6</button>
 <button onclick="changeHp('players/player1',12)">+12</button>
 </div>
 
 <div class="col">
-<h3>玩家2</h3>
+<h3>冒險者2</h3>
 <button onclick="changeHp('players/player2',6)">+6</button>
 <button onclick="changeHp('players/player2',12)">+12</button>
 </div>
@@ -156,7 +156,7 @@ const gameRef=db.ref("games/"+GAME_ID);
 
 let battleState={active:false,phase:"player1"};
 function syncBattleTurn(){gameRef.child("battleTurn").set(battleState.active?battleState.phase:"none");}
-function updateBattleText(){const el=document.getElementById("battleTurn");if(!battleState.active){el.innerText="目前狀態：尚未開始戰鬥";syncBattleTurn();return;}if(battleState.phase==="player1")el.innerText="目前攻擊方：玩家1";if(battleState.phase==="player2")el.innerText="目前攻擊方：玩家2";if(battleState.phase==="enemy")el.innerText="目前攻擊方：怪物（AOE）";syncBattleTurn();}
+function updateBattleText(){const el=document.getElementById("battleTurn");if(!battleState.active){el.innerText="目前狀態：尚未開始戰鬥";syncBattleTurn();return;}if(battleState.phase==="player1")el.innerText="目前攻擊方：冒險者1";if(battleState.phase==="player2")el.innerText="目前攻擊方：冒險者2";if(battleState.phase==="enemy")el.innerText="目前攻擊方：怪物（AOE）";syncBattleTurn();}
 function setBattleLog(text){document.getElementById("battleLog").innerText=text||"";}
 function makePlayer(job,maxHp,hit){
   return{
@@ -175,7 +175,7 @@ function makePlayer(job,maxHp,hit){
     }
   };
 }
-function addPlayer(job,maxHp,hit){gameRef.child("players").once("value").then(s=>{const p=s.val()||{};if(!p.player1||!p.player1.job)gameRef.child("players/player1").set(makePlayer(job,maxHp,hit));else if(!p.player2||!p.player2.job)gameRef.child("players/player2").set(makePlayer(job,maxHp,hit));else alert("已有兩位玩家");});}
+function addPlayer(job,maxHp,hit){gameRef.child("players").once("value").then(s=>{const p=s.val()||{};if(!p.player1||!p.player1.job)gameRef.child("players/player1").set(makePlayer(job,maxHp,hit));else if(!p.player2||!p.player2.job)gameRef.child("players/player2").set(makePlayer(job,maxHp,hit));else alert("已有兩位冒險者");});}
 function setPlayerAtk(player,val){gameRef.child("players/"+player+"/atk").set(val);}function addPlayerAtk(player,val){gameRef.child("players/"+player+"/atk").once("value").then(s=>gameRef.child("players/"+player+"/atk").set((Number(s.val())||0)+val));}
 function setPlayerDef(player,val){gameRef.child("players/"+player+"/def").set(val);}function addPlayerDef(player,val){gameRef.child("players/"+player+"/def").once("value").then(s=>gameRef.child("players/"+player+"/def").set((Number(s.val())||0)+val));}
 function setInterfere(player,val){gameRef.child("players/"+player+"/interfere").set(val);}
@@ -193,7 +193,7 @@ function addInterfere(player){
     ).set(now);
 
     setBattleLog(
-      (player==="player1"?"玩家1":"玩家2")
+      (player==="player1"?"冒險者1":"冒險者2")
       +" 的干涉次數 +1"
     );
   });
@@ -230,13 +230,13 @@ function useInterfereTarget(user,target){
 
     const userName=
       user==="player1"
-      ?"玩家1"
-      :"玩家2";
+      ?"冒險者1"
+      :"冒險者2";
 
     const targetName=
       target==="player1"
-      ?"玩家1"
-      :"玩家2";
+      ?"冒險者1"
+      :"冒險者2";
 
     setBattleLog(
       userName+
@@ -282,7 +282,7 @@ function useInterfereOnEnemy(player){
     });
 
     setBattleLog(
-      (player==="player1"?"玩家1":"玩家2")
+      (player==="player1"?"冒險者1":"冒險者2")
       +" 對敵人施加 干涉-2"
     );
   });
@@ -297,7 +297,7 @@ function useShield(player){
     if(!active.shieldOwned && Number(active.shieldTurns||0)===0){
 
       gameRef.child("players/"+player+"/active/shieldOwned").set(true);
-      setBattleLog(player+" 獲得時間護盾。");
+      setBattleLog(userName+" 獲得時間護盾。");
       return;
     }
 
@@ -308,12 +308,12 @@ function useShield(player){
         shieldTurns:3
       });
 
-      setBattleLog(player+" 啟動時間護盾：3回合。");
+      setBattleLog(userName+" 啟動時間護盾：3回合。");
       return;
     }
 
     if(Number(active.shieldTurns||0)>0){
-      setBattleLog(player+" 的時間護盾已在生效中。");
+      setBattleLog(userName+" 的時間護盾已在生效中。");
     }
   });
 }
@@ -464,7 +464,7 @@ function triggerRoom(node){
         maxHp:25,
         atk:5,
         hit:"7+",
-        drop:"160金、回復藥 x1",
+        drop:"💰160銀幣＋🧪回復藥 x1",
         interfereDebuff:0
       };
 
@@ -498,7 +498,7 @@ function triggerRoom(node){
         maxHp:40,
         atk:5,
         hit:"7+",
-        drop:"最終故事",
+        drop:"真相＋神秘寶物",
         interfereDebuff:0
       };
 
@@ -537,15 +537,15 @@ function triggerRoom(node){
 
           const picked=randomPick([
             {
-              enemy:{name:"齒輪兵",hp:6,maxHp:6,atk:2,hit:"6+",drop:"40金",interfereDebuff:0},
+              enemy:{name:"齒輪兵",hp:6,maxHp:6,atk:2,hit:"6+",drop:"💰40銀幣",interfereDebuff:0},
               visual:"monster_a1"
             },
             {
-              enemy:{name:"齒輪巡狼",hp:10,maxHp:10,atk:3,hit:"7+",drop:"60金",interfereDebuff:0},
+              enemy:{name:"齒輪巡狼",hp:10,maxHp:10,atk:3,hit:"7+",drop:"💰60銀幣",interfereDebuff:0},
               visual:"monster_b1"
             },
             {
-              enemy:{name:"齒液獸",hp:14,maxHp:14,atk:4,hit:"8+",drop:"80金",interfereDebuff:0},
+              enemy:{name:"齒液獸",hp:14,maxHp:14,atk:4,hit:"8+",drop:"💰80銀幣",interfereDebuff:0},
               visual:"monster_c1"
             }
           ]);
@@ -557,15 +557,15 @@ function triggerRoom(node){
 
           const picked=randomPick([
             {
-              enemy:{name:"齒輪騎士",hp:8,maxHp:8,atk:3,hit:"6+",drop:"60金",interfereDebuff:0},
+              enemy:{name:"齒輪騎士",hp:8,maxHp:8,atk:3,hit:"6+",drop:"💰60銀幣",interfereDebuff:0},
               visual:"monster_a2"
             },
             {
-              enemy:{name:"狂化齒狼",hp:12,maxHp:12,atk:4,hit:"7+",drop:"80金",interfereDebuff:0},
+              enemy:{name:"狂化齒狼",hp:12,maxHp:12,atk:4,hit:"7+",drop:"💰80銀幣",interfereDebuff:0},
               visual:"monster_b2"
             },
             {
-              enemy:{name:"喰鐵齒液獸",hp:16,maxHp:16,atk:5,hit:"8+",drop:"100金",interfereDebuff:0},
+              enemy:{name:"喰鐵齒液獸",hp:16,maxHp:16,atk:5,hit:"8+",drop:"💰100銀幣",interfereDebuff:0},
               visual:"monster_c2"
             }
           ]);
@@ -603,16 +603,16 @@ function triggerRoom(node){
 
         const roomInfo={
           mode:"room",
-          content:`✨【幸運房】
+          content:`🍀【幸運房】
 ━━━━━━━━━━━━
-❌ 失敗｜2～5
+❌ 失敗｜擲出2～5
 無事發生
 
-🟡 普通｜6～10
-💰 100金、💊 高級回復藥 ×1
+🟡 普通｜擲出6～10
+獲得 💰100銀幣＋🧪高級回復藥 ×1
 
-🟢 大成功｜11～12
-💰 200金、💊 高級回復藥 ×1`
+🟢 大成功｜擲出11～12
+獲得 💰200金＋🧪 高級回復藥 ×1`
         };
 
         const eventState={
@@ -638,30 +638,30 @@ function triggerRoom(node){
         {
           type:"chest",
           visual:"rm_Chest",
-          text:`📦【寶箱房】
+          text:`💎【寶箱房】
 ━━━━━━━━━━━━
-❌ 失敗｜2～5
-無法開啟 + 輕微扣血：2HP
+❌ 失敗｜擲出2～5
+無法開啟 + 扣 2HP
 
-🟡 普通｜6～10
-💰 80金、💊 回復藥 ×1
+🟡 普通｜擲出6～10
+獲得 💰80銀幣＋🧪回復藥 ×1
 
-🟢 大成功｜11～12
-💰 160金、💊 高級回復藥 ×1`
+🟢 大成功｜擲出11～12
+獲得 💰160銀幣＋🧪高級回復藥 ×1`
         },
         {
           type:"trap",
           visual:"rm_trap",
           text:`⚠️【陷阱房】
 ━━━━━━━━━━━━
-❌ 大失敗｜2～5
-扣 6HP、失去1個道具
+❌ 失敗｜擲出2～5
+扣 6HP＋隨機失去1個道具
 
-🟡 普通｜6～10
+🟡 普通｜擲出6～10
 扣 4HP
 
-🟢 大成功｜11～12
-💰 +20金`
+🟢 大成功｜擲出11～12
+獲得 💰20銀幣`
         },
         {
           type:"wanderer",
@@ -674,7 +674,7 @@ function triggerRoom(node){
 
 🛡️ 時間護盾：免傷3回合
 
-🔁 命運逆轉：指定骰子一次`
+💖 生命全回復`
         }
       ]);
 
@@ -788,7 +788,7 @@ function resolveEvent(value,type,players){
       Object.assign(updates,damageAllPlayers(players,4));
       result="失敗: 失去4HP";
     }else{
-      result="大成功: 獲得💰20金";
+      result="大成功: 獲得💰20銀幣";
     }
   }
 
@@ -797,9 +797,9 @@ function resolveEvent(value,type,players){
       Object.assign(updates,damageAllPlayers(players,2));
       result="大失敗: 無法開啟, 並失去2HP";
     }else if(finalValue<=10){
-      result="成功: 獲得💰80金 + 💊 回復藥 ×1";
+      result="成功: 獲得💰80銀幣 + 🧪 回復藥 ×1";
     }else{
-      result="大成功: 獲得💰160金 + 💊 高級回復藥 ×1";
+      result="大成功: 獲得💰160銀幣 + 🧪 高級回復藥 ×1";
     }
   }
 
@@ -807,9 +807,9 @@ function resolveEvent(value,type,players){
     if(finalValue<=5){
       result="大失敗: 無任何事發生";
     }else if(finalValue<=10){
-      result="成功: 獲得💰100金 + 💊 高級回復藥 ×1";
+      result="成功: 獲得💰100銀幣 + 🧪 高級回復藥 ×1";
     }else{
-      result="大成功: 獲得💰200金 + 💊 高級回復藥 ×1";
+      result="大成功: 獲得💰200銀幣 + 🧪 高級回復藥 ×1";
     }
   }
 
@@ -843,12 +843,12 @@ if(Number(p.active?.interfereBuff||0)>0){
   finalValue=Math.min(12,value+2);
 
   log=
-    `玩家1 擲出 ${value}\n`
+    `冒險者1 擲出 ${value}\n`
     +`干涉+2 → ${finalValue}\n`;
 
 }else{
 
-  log=`玩家1 擲出 ${value}\n`;
+  log=`冒險者1 擲出 ${value}\n`;
 }if(finalValue>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&finalValue>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);gameRef.child("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
   finishEnemyBattle(log, enemy);
   return;
@@ -871,12 +871,12 @@ if(alive(p)){
     finalValue=Math.min(12,value+2);
 
     log=
-      `玩家2 擲出 ${value}\n`
+      `冒險者2 擲出 ${value}\n`
       +`干涉+2 → ${finalValue}\n`;
 
   }else{
 
-    log=`玩家2 擲出 ${value}\n`;
+    log=`冒險者2 擲出 ${value}\n`;
   }if(finalValue>=hitRequired(p.hit)){let damage=Number(p.atk)||0;if(p.job==="潛行者"&&finalValue>=9)damage+=1;if(p.active?.weaponBoost)damage+=3;const nextHp=Math.max(0,Number(enemy.hp)-damage);gameRef.child("enemy/hp").set(nextHp);log+=`命中！造成 ${damage} 傷害`;if(nextHp<=0){
   finishEnemyBattle(log, enemy);
   return;
@@ -926,9 +926,9 @@ const monsterHit =
 
       if(shieldTurns>0){
         damage=0;
-        log+=`\n${k==="player1"?"玩家1":"玩家2"} 時間護盾生效，傷害歸0`;
+        log+=`\n${k==="player1"?"冒險者1":"冒險者2"} 時間護盾生效，傷害歸0`;
       }else{
-        log+=`\n${k==="player1"?"玩家1":"玩家2"} 受到 ${damage} 傷害`;
+        log+=`\n${k==="player1"?"冒險者1":"冒險者2"} 受到 ${damage} 傷害`;
       }
 
       updates["players/"+k+"/hp"]=
@@ -936,7 +936,7 @@ const monsterHit =
 
     }else{
 
-      log+=`\n${k==="player1"?"玩家1":"玩家2"} 未被命中`;
+      log+=`\n${k==="player1"?"冒險者1":"冒險者2"} 未被命中`;
     }
 
     if(shieldTurns>0){

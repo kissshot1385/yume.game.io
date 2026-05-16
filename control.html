@@ -186,7 +186,10 @@ function addInterfere(player){
   .once("value")
   .then(s=>{
 
-    const now=Number(s.val()||0)+1;
+    const now=Math.min(
+  5,
+  Number(s.val()||0)+1
+);
 
     gameRef.child(
       "players/"+player+"/interfere"

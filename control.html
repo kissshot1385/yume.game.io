@@ -464,7 +464,7 @@ function triggerRoom(node){
         maxHp:25,
         atk:5,
         hit:"7+",
-        drop:"💰160銀幣＋🧪回復藥 x1",
+        drop:"💰160銀幣 + 🧪回復藥 x1",
         interfereDebuff:0
       };
 
@@ -498,7 +498,7 @@ function triggerRoom(node){
         maxHp:40,
         atk:5,
         hit:"7+",
-        drop:"真相＋神秘寶物",
+        drop:"真相 + 神秘寶物",
         interfereDebuff:0
       };
 
@@ -609,10 +609,10 @@ function triggerRoom(node){
 無事發生
 
 🟡 普通｜擲出6～10
-獲得 💰100銀幣＋🧪高級回復藥 ×1
+獲得 💰100銀幣 + 🧪高級回復藥 ×1
 
 🟢 大成功｜擲出11～12
-獲得 💰200金＋🧪 高級回復藥 ×1`
+獲得 💰200金 + 🧪 高級回復藥 ×1`
         };
 
         const eventState={
@@ -641,13 +641,13 @@ function triggerRoom(node){
           text:`💎【寶箱房】
 ━━━━━━━━━━━━
 ❌ 失敗｜擲出2～5
-無法開啟, 並失去 💖2HP
+無法開啟 + 失去 ❤️2HP
 
 🟡 普通｜擲出6～10
-獲得 💰80銀幣 ＋ 🧪回復藥 ×1
+獲得 💰80銀幣 + 🧪回復藥 ×1
 
 🟢 大成功｜擲出11～12
-獲得 💰160銀幣 ＋ 🧪高級回復藥 ×1`
+獲得 💰160銀幣 + 🧪高級回復藥 ×1`
         },
         {
           type:"trap",
@@ -655,10 +655,10 @@ function triggerRoom(node){
           text:`⚠️【陷阱房】
 ━━━━━━━━━━━━
 ❌ 失敗｜擲出2～5
-失去 💖6HP, 並失去 1個道具
+失去 ❤️6HP + 失去 1個道具
 
 🟡 普通｜擲出6～10
-失去 💖4HP
+失去 ❤️4HP
 
 🟢 大成功｜擲出11～12
 獲得 💰20銀幣`
@@ -674,7 +674,7 @@ function triggerRoom(node){
 
 🛡️ 時間護盾：免傷3回合
 
-💖 生命全回復`
+❤️ 生命全回復`
         }
       ]);
 
@@ -783,10 +783,10 @@ function resolveEvent(value,type,players){
   if(type==="trap"){
     if(finalValue<=5){
       Object.assign(updates,damageAllPlayers(players,6));
-      result="❌ 失敗: 失去 💖6HP, 並失去1個道具";
+      result="❌ 失敗: 失去 ❤️6HP + 失去1個道具";
     }else if(finalValue<=10){
       Object.assign(updates,damageAllPlayers(players,4));
-      result="🟡 普通: 失去 💖4HP";
+      result="🟡 普通: 失去 ❤️4HP";
     }else{
       result="🟢 大成功: 獲得 💰20銀幣";
     }
@@ -795,7 +795,7 @@ function resolveEvent(value,type,players){
   if(type==="chest"){
     if(finalValue<=5){
       Object.assign(updates,damageAllPlayers(players,2));
-      result="❌ 失敗: 無法開啟, 並失去 💖2HP";
+      result="❌ 失敗: 無法開啟 + 失去 ❤️2HP";
     }else if(finalValue<=10){
       result="🟡 普通: 獲得 💰80銀幣 + 🧪回復藥 ×1";
     }else{
